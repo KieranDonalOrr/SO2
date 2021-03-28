@@ -26,3 +26,16 @@ int bumount(){
         return 0;
     }
 }
+
+int bwrite(unsigned int nbloque, const void *buf){
+    off_t desplazamiento= nbloque * BLOCKSIZE;
+    int punto_de_referencia= SEEK_SET;
+    off_t lseek(int descriptor, off_t desplazamiento, int punto_de_referencia);
+    ssize_t write(int descriptor, const void *buf, size_t nbytes);
+
+}
+
+int bread(unsigned int nbloque, void *buf){
+
+
+}
