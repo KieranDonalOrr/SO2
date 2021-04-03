@@ -62,4 +62,10 @@ struct inodo {     // comprobar que ocupa 128 bytes haciendo un sizeof(inodo)!!!
    // Hay que restar también lo que ocupen las variables de alineación utilizadas!!!
 };
 
+int tamMB(unsigned int nbloques);
+int tamAI(unsigned int ninodos);
+int initSB(unsigned int nbloques, unsigned int ninodos);
+int initMB();
+
+
 
