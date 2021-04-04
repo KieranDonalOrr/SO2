@@ -9,6 +9,7 @@
 #include <unistd.h> // SEEK_SET, read(), write(), open(), close(), lseek()
 #include <errno.h>  //errno
 #include <string.h> // strerror()
+#include <limits.h>
 #include "bloques.h"
 
 #define posSB 0 // el superbloque se escribe en el primer bloque de nuestro FS

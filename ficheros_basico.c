@@ -77,6 +77,46 @@ int initMB(){
     unsigned char buffer[BLOCKSIZE];
     memset(buffer, 0, BLOCKSIZE);
 
+    struct superbloque SB;
     //contenido buffer se escribe en los bloques del mapa de bits
+    for( int i= SB.posPrimerBloqueMB; i< SB.posUltimoBloqueMB; i++){
+        bwrite(i, buffer);
+    }
+
+    //for()
+    //escribir_bit(i,1);
+}
+//inicializar lista de inodos libres
+int initAI(){
+
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    struct superbloque SB;
+    //obtengo dirección array inodos
+    bread(posSB, &SB);
+    //se pone a 0 los inodos.
+    memset(inodos, 0, BLOCKSIZE);
     
+    
+   unsigned int contInodos = SB.posPrimerInodoLibre + 1;
+    //si hemos inicializado SB.posPrimerInodoLibre = 0
+    for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
+    for (int j = 0; j < BLOCKSIZE / INODOSIZE;  j++) {
+        inodos[j].tipo = ‘l’;  //libre
+        if(contInodos < SB.totInodos) {
+                inodos[j].punterosDirectos[0] = contInodos;
+                contInodos++;
+        }
+            else{ //hemos llegado al último inodo
+                inodos[j].punterosDirectos[0] = UINT_MAX;
+                //hay que salir del bucle, el último bloque no tiene por qué estar completo
+                break;
+                }
+            }
+            //escribir el bloque de inodos en el dispositivo virtual
+    bwrite(i,&inodos);
+        }
+    
+    }
+
+
 }
