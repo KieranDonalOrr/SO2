@@ -1,5 +1,5 @@
-#include "bloques.h"
 
+#include "ficheros_basico.h"
 
 int main (int argc, char **argv){
     if (argc!=3){
@@ -21,8 +21,16 @@ int main (int argc, char **argv){
         
         for (unsigned int i=1;i<nbloques;i++){
             bwrite(i,buffer);
+            
 
         }
+        initSB(nbloques, nbloques/4); 
+        initAI();
+        initMB(); 
+
+        
+
+
         //BUMOUNT
         bumount();
 

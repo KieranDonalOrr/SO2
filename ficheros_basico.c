@@ -1,4 +1,5 @@
 #include "ficheros_basico.h"
+#include "bloques.h"
 
 
 //Devuelve el Tamaño en bloques del mapa de bits
@@ -25,7 +26,7 @@ int tamAI(unsigned int ninodos){
     int resultTamAI = ((ninodos * INODOSIZE)/ BLOCKSIZE);
 
     if((resultTamAI % BLOCKSIZE) != 0){
-        return (resultTamAI+1);
+        return (resultTamAI);
 
     }
     else{
@@ -45,11 +46,11 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
     //ultimo bloque mapa bits
     SB.posUltimoBloqueMB = SB.posPrimerBloqueMB + tamMB(nbloques) - 1;
     //primer bloque array inodos
-    SB.posPrimerBloqueAI = SB.posUltimoBloqueMB + 1;
+    SB.posPrimerBloqueAI = SB.posUltimoBloqueMB+1;
     //último bloque array inodos
     SB.posUltimoBloqueAI = SB.posPrimerBloqueAI + tamAI(ninodos) - 1;
     //primer bloque datos
-    SB.posPrimerBloqueDatos = SB.posUltimoBloqueAI + 1;
+    SB.posPrimerBloqueDatos = SB.posUltimoBloqueAI+1;
     //ultimo bloque datos
     SB.posUltimoBloqueDatos = nbloques-1;
     //inodo directorio raíz
@@ -66,8 +67,8 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
     SB.totInodos = ninodos;
 
     //escribimos estructura en en posSB
-    int escrituraBl = bwrite(posSB, &SB);
-
+    bwrite(posSB, &SB);
+    return -1;
 }
 
 //inicializa el mapa de bits (en nivel 2 simplemente se pone todo a 0)
@@ -82,7 +83,7 @@ int initMB(){
     for( int i= SB.posPrimerBloqueMB; i< SB.posUltimoBloqueMB; i++){
         bwrite(i, buffer);
     }
-
+    return -1;
     //for()
     //escribir_bit(i,1);
 }
@@ -96,12 +97,13 @@ int initAI(){
     //se pone a 0 los inodos.
     memset(inodos, 0, BLOCKSIZE);
     
-    
+    SB.posPrimerBloqueAI=SB.posPrimerBloqueAI;
+    SB.posUltimoBloqueAI=SB.posUltimoBloqueAI;
    unsigned int contInodos = SB.posPrimerInodoLibre + 1;
     //si hemos inicializado SB.posPrimerInodoLibre = 0
     for (int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++){
     for (int j = 0; j < BLOCKSIZE / INODOSIZE;  j++) {
-        inodos[j].tipo = ‘l’;  //libre
+        inodos[j].tipo = 'l';  //libre
         if(contInodos < SB.totInodos) {
                 inodos[j].punterosDirectos[0] = contInodos;
                 contInodos++;
@@ -115,8 +117,7 @@ int initAI(){
             //escribir el bloque de inodos en el dispositivo virtual
     bwrite(i,&inodos);
         }
-    
+    return -1;
     }
 
 
-}
