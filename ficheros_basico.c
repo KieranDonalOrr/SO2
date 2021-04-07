@@ -1,5 +1,6 @@
 #include "ficheros_basico.h"
 #include "bloques.h"
+#include <time.h> 
 
 //Devuelve el Tamaño en bloques del mapa de bits
 int tamMB(unsigned int nBloques)
@@ -126,7 +127,7 @@ int initAI()
     }
     return -1;
 }
-
+//escribe el valor indicado por el parametro bit (0 libre, 1 ocupado) en un determinado bloque
 int escribir_bit(unsigned int nBloque, unsigned int bit)
 {
     unsigned char bufferMB[BLOCKSIZE];
@@ -140,8 +141,10 @@ int escribir_bit(unsigned int nBloque, unsigned int bit)
         printf("Error in escribir_bit\n");
         return -1;
     }
+    //calculamos la posición del byte en el MB
     poSByte = nBloque / 8;
     poSBit = nBloque % 8;
+    //posicion absoluta del dispositivo virtual en el que se encuentra el bloque
     poSBlock = (poSByte / BLOCKSIZE) + SB.posPrimerBloqueMB;
     memset(bufferMB, 0, BLOCKSIZE);
     if (bread(poSBlock, bufferMB) == -1)
@@ -149,8 +152,11 @@ int escribir_bit(unsigned int nBloque, unsigned int bit)
         printf("Error en leyendo el bloque en escribir bit\n");
         return -1;
     }
+    //utilizamos mascara para desplazar bits a la derecha
     mascara >>= poSBit;
+    //localizamos posición de poSByte
     poSByte = poSByte % BLOCKSIZE;
+    //instrucción para poner a 0 o a 1 el bit correspondiente
     if (bit == 1)
     {
         bufferMB[poSByte] |= mascara;
@@ -159,7 +165,7 @@ int escribir_bit(unsigned int nBloque, unsigned int bit)
     {
         bufferMB[poSByte] &= ~mascara;
     }
-
+    //escribimos buffer del MB en dispositivo virtual
     if (bwrite(poSBlock, bufferMB) == -1)
     {
         printf("Error en escribir el bloque\n");
@@ -167,7 +173,8 @@ int escribir_bit(unsigned int nBloque, unsigned int bit)
     }
     return 0;
 }
-
+//lee determinado bit del MB y devuelve valor del bit leído
+//misma operativa que en la función anterior
 unsigned char leer_bit(unsigned int nBloque)
 {
     unsigned char bufferMB[BLOCKSIZE];
@@ -196,7 +203,7 @@ unsigned char leer_bit(unsigned int nBloque)
     mascara >>= (7 - poSBit);
     return mascara;
 }
-
+//encuentra primer bloque libre, lo ocupa y devuelve su posición
 int reservar_bloque()
 {
     struct superbloque SB;
@@ -212,16 +219,19 @@ int reservar_bloque()
         printf("Error en leer el superbloque\n");
         return -1;
     }
+    //comprobamos si quedan bloques libres
     if (SB.cantBloquesLibres > 0)
     {
-
+        //buffer auxiliar que utilizaremos para comparar cada bloque inicializado a 1
         memset(bufferAux, 255, BLOCKSIZE);
+        //localizamos posicion primer bloque del MB
         bloqueMB = SB.posPrimerBloqueMB;
         if (bread(bloqueMB, buffer) == -1)
         {
             printf("Error en leer el mapa de bits\n");
             return -1;
         }
+        //bucle que compara los bits de ambos buffer
         while (memcmp(bufferAux, buffer, BLOCKSIZE) == 0)
         {
             if (bloqueMB <= SB.posUltimoBloqueMB)
@@ -274,7 +284,7 @@ int reservar_bloque()
         return -1;
     }
 }
-
+//libera un bloque determinado
 int liberar_bloque(unsigned int nBloque)
 {
     struct superbloque SB;
@@ -284,10 +294,11 @@ int liberar_bloque(unsigned int nBloque)
         printf("Error en leer el superbloque\n");
         return -1;
     }
-
+    //ponemos a 0 el bit del MB correspondiente al nbloque recibido por parametro
     escribir_bit(nBloque, 0);
     if (SB.cantBloquesLibres < SB.totBloques)
     {
+        //incrementamos cantidad de bloques libres
         SB.cantBloquesLibres++;
         escribir_bit(nBloque, 0);
     }
@@ -295,17 +306,17 @@ int liberar_bloque(unsigned int nBloque)
     {
         printf("Todos los bloques estan libres");
     }
-
+    //devolvemos el bloque liberado
     return nBloque;
 }
 
-
+//escribe el contenido de una variable struct inodo en un inodo específico del array de inodos
 int escribir_inodo(struct inodo inodo, unsigned int numInodo)
 {
     struct superbloque SB;
     int nBloque;
     struct inodo ai[BLOCKSIZE / (BLOCKSIZE / 8)];
-
+    //leemos superbloque para obtener dirección array inodos
     if (bread(posSB, &SB) == -1)
     {
         printf("Error en leer el superbloque\n");
@@ -320,6 +331,7 @@ int escribir_inodo(struct inodo inodo, unsigned int numInodo)
     }
     ai[(numInodo % (BLOCKSIZE / (BLOCKSIZE / 8)))] = inodo;
 
+    //escribimos el bloque modificado en el dispositivo virtual
     if (bwrite(nBloque, ai) == -1)
     {
         printf("Error en escribir el inodo\n");
@@ -327,19 +339,19 @@ int escribir_inodo(struct inodo inodo, unsigned int numInodo)
     }
     return nBloque;
 }
-
+//lee un determinado inodo del array de inodos y lo vuelva en una variable struct inodo
 struct inodo leer_inodo(unsigned int numInodo)
 {
     struct superbloque SB;
     int nBloque;
     struct inodo ai[BLOCKSIZE / (BLOCKSIZE / 8)];
-
+    //leemos superbloque para localizar array de inodos
     if (bread(posSB, &SB) == -1)
     {
         printf("Error al leer el superbloque\n");
         // No se qwue devolver aqui en caso de error
     }
-
+    //inodo solicitado está en la siguiente posición
     nBloque = SB.posPrimerBloqueAI + (numInodo / (BLOCKSIZE / (BLOCKSIZE / 8)));
     if (bread(nBloque, ai) == -1)
     {
@@ -347,6 +359,7 @@ struct inodo leer_inodo(unsigned int numInodo)
          // No se que devolver aqui en caso de error
     }
     return ai[(numInodo % (BLOCKSIZE / (BLOCKSIZE / 8)))];
+    //***según adelaida, ¿si funciona todo bien no ha de devolver 0?***
 }
 
 
