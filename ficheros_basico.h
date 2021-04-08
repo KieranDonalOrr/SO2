@@ -73,5 +73,5 @@ unsigned char leer_bit(unsigned int nBloque);
 int reservar_bloque();
 int liberar_bloque(unsigned int nBloque);
 int escribir_inodo(struct inodo inodo, unsigned int numInodo);
-struct inodo leer_inodo(unsigned int numInodo);
+int leer_inodo(unsigned int ninodo, struct inodo *inodo);
 int reservar_inodo(unsigned char tipo, unsigned char permisos);

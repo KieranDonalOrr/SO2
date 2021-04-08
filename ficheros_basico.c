@@ -365,8 +365,8 @@ int escribir_inodo(struct inodo inodo, unsigned int numInodo)
     return nBloque;
 }
 //lee un determinado inodo del array de inodos y lo vuelva en una variable struct inodo
-struct inodo leer_inodo(unsigned int numInodo)
-{
+int leer_inodo(unsigned int ninodo, struct inodo *inodo){
+
     struct superbloque SB;
     int nBloque;
     struct inodo ai[BLOCKSIZE / (BLOCKSIZE / 8)];
@@ -374,17 +374,20 @@ struct inodo leer_inodo(unsigned int numInodo)
     if (bread(posSB, &SB) == -1)
     {
         printf("Error al leer el superbloque\n");
-        // No se qwue devolver aqui en caso de error
+        return -1;
     }
-    //inodo solicitado está en la siguiente posición
-    nBloque = SB.posPrimerBloqueAI + (numInodo / (BLOCKSIZE / (BLOCKSIZE / 8)));
-    if (bread(nBloque, ai) == -1)
+    //nBloque del array de inodos que tiene el inodo solicitado
+    nBloque = SB.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / (BLOCKSIZE / 8)));
+    if (bread(nBloque, &ai) == -1)
     {
         printf("Error al leer el inodo\n");
-         // No se que devolver aqui en caso de error
+        return -1;
     }
-    return ai[(numInodo % (BLOCKSIZE / (BLOCKSIZE / 8)))];
-    //***según adelaida, ¿si funciona todo bien no ha de devolver 0?***
+    //inodo solicitado se almacena en la siguiente posición
+    *inodo= ai[ninodo % (BLOCKSIZE/INODOSIZE)];
+
+    //si ha ido todo bien devolvemos 0
+  return 0;  
 }
 
 //encuentra el primer inodo libre, lo reserva, devuelve su número y actualiza la lista enlazada de inodos libres
@@ -402,7 +405,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
     //comprobamos si hay inodos libres
     if (SB.cantInodosLibres > 0)
     {
-        //inicialización de todos los campos del inodo al que apuntaba inicialmente al superbbloque
+        //inicialización de todos los campos del inodo al que apuntaba inicialmente al superbloque
         time_t now;
         inodo = leer_inodo(SB.posPrimerInodoLibre);
         numInodo = SB.posPrimerInodoLibre;
