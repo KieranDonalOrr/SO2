@@ -188,15 +188,20 @@ unsigned char leer_bit(unsigned int nBloque)
         printf("Error en leer el superbloque\n");
         return -1;
     }
+    //se calcula la posición del byte en el MB
     poSByte = nBloque / 8;
     poSBit = nBloque % 8;
+    //posición absoluta del dispositivo virtual en el que se encuentra el bloque
     poSBlock = (poSByte / BLOCKSIZE) + SB.posPrimerBloqueMB;
+    //set del bufferMB a 0
     memset(bufferMB, 0, BLOCKSIZE);
+    //hacemos un bread utilizando el bufferMB
     if (bread(poSBlock, bufferMB) == -1)
     {
         printf("Error en leer el bloque\n");
         return -1;
     }
+
     poSByte = poSByte % BLOCKSIZE;
     mascara >>= poSBit;
     mascara &= bufferMB[poSByte];
@@ -206,6 +211,7 @@ unsigned char leer_bit(unsigned int nBloque)
 //encuentra primer bloque libre, lo ocupa y devuelve su posición
 int reservar_bloque()
 {
+    //definición de todos los parámetros que necesitaremos
     struct superbloque SB;
     unsigned char buffer[BLOCKSIZE];
     unsigned char bufferAux[BLOCKSIZE];
@@ -214,6 +220,7 @@ int reservar_bloque()
     int poSByte;
     int poSBit;
     unsigned char mascara = 128;
+    //leemos superbloue para obtener su correcta localización
     if (bread(posSB, &SB) == -1)
     {
         printf("Error en leer el superbloque\n");
@@ -226,6 +233,7 @@ int reservar_bloque()
         memset(bufferAux, 255, BLOCKSIZE);
         //localizamos posicion primer bloque del MB
         bloqueMB = SB.posPrimerBloqueMB;
+        //leemos mapa de bits utilizando el buffer seteado a 1
         if (bread(bloqueMB, buffer) == -1)
         {
             printf("Error en leer el mapa de bits\n");
@@ -234,42 +242,57 @@ int reservar_bloque()
         //bucle que compara los bits de ambos buffer
         while (memcmp(bufferAux, buffer, BLOCKSIZE) == 0)
         {
+            //miramos que la posición leída del bloque sea menor o igual al último bloque
+            //indicando que hay bloques libres
             if (bloqueMB <= SB.posUltimoBloqueMB)
             {
+                //actualizamos valor del bloque de mapa de bits
                 bloqueMB++;
+                //leemos mapa de bits utilizando el buffer
                 if (bread(bloqueMB, buffer) == -1)
                 {
                     printf("Error error en leer el mapa de bits en bucle\n");
                     return -1;
                 }
             }
+            //si no hay bloques libres saltará error y saldremos de la función
             else
             {
                 printf("Error no hay bloques libres\n");
                 return -1;
             }
         }
-
+        //recorremos bucle buscando el primer 0
         for (poSByte = 0; buffer[poSByte] == 255; poSByte++)
         {
         }
         poSBit = 0;
+        //el bit encontrado debe corresponder al primer bloque libre
+        //comprobamos que esté dentro del tamaño del mapa de bits
         if (buffer[poSByte] < 255)
         {
+            //buscamos en qué posición del bit está el 0
             for (; buffer[poSByte] & mascara; poSBit++)
             {
+                //desplazamiento de bits a la izquierda
                 buffer[poSByte] <<= 1;
             }
         }
+        //cálculo para determinar finalmente el nº de bloque
         numBloque = ((bloqueMB - SB.posPrimerBloqueMB) * BLOCKSIZE + poSByte) * 8 + poSBit;
+        //utilizamos la función escribir_bit pasándole un 1 y el numero calculado para indicar
+        //que el bloque está reservado
         if (escribir_bit(numBloque, 1) != -1)
         {
+            //decrementamos cantidad de bloques libres
             SB.cantBloquesLibres = SB.cantBloquesLibres - 1;
+            //guardamos el superbloque actualizado
             if (bwrite(posSB, &SB) == -1)
             {
                 printf("Error al escribir en el superbloque\n");
                 return -1;
             }
+            //devolvemos el numero de bloque reservado
             return numBloque;
         }
         else
@@ -278,6 +301,8 @@ int reservar_bloque()
             return -1;
         }
     }
+    //si el bit encontrado no corresponde con el mapa de bits
+    //es porque no hay bloques libres y por tanto devolvemos error
     else
     {
         printf("Error no hay bloques libres\n");
@@ -362,20 +387,22 @@ struct inodo leer_inodo(unsigned int numInodo)
     //***según adelaida, ¿si funciona todo bien no ha de devolver 0?***
 }
 
-
+//encuentra el primer inodo libre, lo reserva, devuelve su número y actualiza la lista enlazada de inodos libres
 int reservar_inodo(unsigned char tipo, unsigned char permisos)
 {
     struct superbloque SB;
     struct inodo inodo;
     int numInodo;
-
+    //leemos superbloque para localizar array de inodos.
     if (bread(posSB, &SB) == -1)
     {
         printf("Error al leer el superbloque\n");
         return -1;
     }
+    //comprobamos si hay inodos libres
     if (SB.cantInodosLibres > 0)
     {
+        //inicialización de todos los campos del inodo al que apuntaba inicialmente al superbbloque
         time_t now;
         inodo = leer_inodo(SB.posPrimerInodoLibre);
         numInodo = SB.posPrimerInodoLibre;
@@ -398,15 +425,20 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
         {
             inodo.punterosIndirectos[i] = 0;
         }
+        //escribimos inodo inicializado en la posición del primer inodo libre
         escribir_inodo(inodo, numInodo);
+        //actualizamos cantidad de inodos libres
         SB.cantInodosLibres = SB.cantInodosLibres - 1;
+        //escribimos en superbloque
         if (bwrite(posSB, &SB) == -1)
         {
             printf("Error en escribir en el superbloque\n");
             return -1;
         }
+        //devolvemos la posicion del inodo reservado
         return numInodo;
     }
+    //indicamos error y salimos en caso de no haber inodos libres
     else
     {
         printf("Error no hay inodos libres\n");

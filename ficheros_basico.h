@@ -62,11 +62,16 @@ struct inodo {     // comprobar que ocupa 128 bytes haciendo un sizeof(inodo)!!!
    char padding[INODOSIZE - 2 * sizeof(unsigned char) - 3 * sizeof(time_t) - 18 * sizeof(unsigned int) - 6 * sizeof(unsigned char)];
    // Hay que restar también lo que ocupen las variables de alineación utilizadas!!!
 };
-
+//funciones correspondientes al nivel2
 int tamMB(unsigned int nbloques);
 int tamAI(unsigned int ninodos);
 int initSB(unsigned int nbloques, unsigned int ninodos);
 int initMB();
-
-
-
+//funciones correspondientes al nivel3
+int escribir_bit(unsigned int nBloque, unsigned int bit);
+unsigned char leer_bit(unsigned int nBloque);
+int reservar_bloque();
+int liberar_bloque(unsigned int nBloque);
+int escribir_inodo(struct inodo inodo, unsigned int numInodo);
+struct inodo leer_inodo(unsigned int numInodo);
+int reservar_inodo(unsigned char tipo, unsigned char permisos);
