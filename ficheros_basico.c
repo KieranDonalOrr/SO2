@@ -407,6 +407,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
     {
         //inicialización de todos los campos del inodo al que apuntaba inicialmente al superbloque
         time_t now;
+        //desde que se ha cambiado el tipo de estructura que es leer_inodo no se puede hacer este tipo de asignación
         inodo = leer_inodo(SB.posPrimerInodoLibre);
         numInodo = SB.posPrimerInodoLibre;
         SB.posPrimerInodoLibre = inodo.punterosDirectos[0];
@@ -447,4 +448,152 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
         printf("Error no hay inodos libres\n");
         return -1;
     }
+}
+//rango de punteros en el que se sitúa el bloque lógico que se pretende buscar
+int obtener_nRangoBL(struct inodo inodo, unsigned int nblogico, unsigned int *ptr){
+
+    if(nblogico < DIRECTOS)
+    {
+        *ptr = inodo.punterosDirectos[nblogico];
+
+        return 0;
+    }    
+    else if(nblogico < INDIRECTOS0)
+    {
+        *ptr = inodo.punterosIndirectos[0];
+        return 1;
+    }
+
+    else if(nblogico < INDIRECTOS1)
+    {
+        *ptr = inodo.punterosIndirectos[1];
+        return 2;
+    }
+    else if(nblogico < INDIRECTOS2)
+    {
+        *ptr = inodo.punterosIndirectos[2];
+        return 3;
+    }
+    else
+    {
+        *ptr = 0;
+       printf("Error: Bloque Lógico fuera de rango");
+        return -1;
+    }
+
+}
+
+int obtener_indice(int nblogico, int nivel_punteros){
+
+    if(nblogico < DIRECTOS) return nblogico; //ej nblogico=8
+    else if(nblogico < INDIRECTOS0) return nblogico - DIRECTOS; //ej nblogico= 204
+    else if(nblogico < INDIRECTOS1){    //ej nblogico= 30.004
+        if(nivel_punteros == 2) 
+        {
+            return (nblogico - INDIRECTOS0)/NPUNTEROS;
+        }
+        else if(nivel_punteros == 1)
+        {
+            return (nblogico-INDIRECTOS0)% NPUNTEROS;
+        }
+    }
+    else if(nblogico < INDIRECTOS2){ //ej nblogico= 400.004
+        if(nivel_punteros == 3)
+        { 
+            return (nblogico-INDIRECTOS1)/(NPUNTEROS*NPUNTEROS);
+        }
+        else if(nivel_punteros == 2){ 
+            return ((nblogico-INDIRECTOS1)%(NPUNTEROS*NPUNTEROS))/NPUNTEROS;
+        }
+        else if(nivel_punteros == 1)
+        { 
+            return ((nblogico-INDIRECTOS1)%(NPUNTEROS*NPUNTEROS))%NPUNTEROS;
+        }
+    }
+    //en caso de no entrar en nignún condicional, devolver error
+    return -1; 
+ }
+//función que se encarga de obtener el numero de bloque físico correspondiente a un bloque lógico
+//determinado del inodo indicado.
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reservar){
+
+    struct inodo inodo;
+    int ptr, ptr_ant, salvar_inodo, nRangoBL, nivel_punteros, indice;
+    int buffer[NPUNTEROS];
+
+    leer_inodo(ninodo, &inodo);
+    ptr = 0, ptr_ant = 0, salvar_inodo = 0;
+    nRangoBL = obtener_nRangoBL(inodo, nblogico, &ptr); //0:D, 1:I0, 2:I1, 3:I2
+    nivel_punteros = nRangoBL; //el nivel_punteros +alto es el que cuelga del inodo
+    while( nivel_punteros > 0)
+    {
+        //iterar cada nivel de indirectos
+       if (ptr == 0 ){
+        //no cuelgan blques de punteros
+        if( reservar == 0){
+            printf("Error de lectura: bloque inexistente");
+            return -1;
+        }
+        else{
+            //reservar  bloques punteros y crear enlaces desde inodo hasta datos
+            salvar_inodo = 1;
+            ptr = reservar_bloque(); //de punteros
+            inodo.numBloquesOcupados++;
+            inodo.ctime = time(NULL); //fecha actual
+            if(nivel_punteros == nRangoBL){
+                //el bloque cuelga directamente del inodo
+                inodo.punterosIndirectos[nRangoBL-1] = ptr; //(imprimirlo para test)
+                
+            }
+            else{ //el bloque cuelga de otro bloque de punteros
+            buffer[indice] = ptr; //(imprimirlo para test)
+                if(bwrite(ptr_ant, buffer)== -1){
+                    fprintf(stderr, "Error de escritura");
+                    return -1;
+                }
+            }
+        }
+       }
+       if(bread(ptr, buffer) == -1){
+           fprintf(stderr, "Error de lectura \n");
+           return -1;
+       }
+       indice= obtener_indice(nblogico, nivel_punteros);
+       ptr_ant = ptr; //guardamos el puntero
+       ptr = buffer[indice]; // y lo desplazamos al siguiente nivel
+       nivel_punteros--;
+    }   
+    //al salir de este bucle ya estamos al nivel de datos
+    if( ptr == 0){ //no existe bloque de datos
+        if( reservar == 0){
+            return -1; //error lectura bloque
+        }
+        else{
+            salvar_inodo = 1;
+            ptr = reservar_bloque(); //de datos
+            inodo.numBloquesOcupados++;
+            inodo.ctime = time(NULL);
+            if(nRangoBL == 0){
+                inodo.punterosDirectos[nblogico] = ptr; //imprimirlo para test
+            }
+            else{
+                buffer[indice] = ptr; //imprimirlo para test
+                if(bwrite(ptr_ant, buffer)== -1){
+                    fprintf(stderr, "Error de escritura \n");
+                    return -1;
+                }
+            }
+        }
+
+    }
+    if(salvar_inodo == 1){
+        //es posible que el error dado sea a causa del error anterior,
+        //me abstengo de hacer ningún cambio, desde que adelaida lo tiene así
+        //hasta que sea corregido el anterior y éste persista.
+        if(escribir_inodo(ninodo, inodo) == -1){//solo en caso de haber sido actualizado
+           fprintf(stderr," Error de ecritura en inodo \n");
+           return -1;
+        } 
+    }
+    return ptr; //nbfísico del bloque de datos
 }
