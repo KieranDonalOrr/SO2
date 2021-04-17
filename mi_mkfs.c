@@ -25,11 +25,15 @@ int main (int argc, char **argv){
 
         }
         initSB(nbloques, nbloques/4); 
-        initAI();
-        initMB(); 
+        int v1 = initAI();
+        int v = initMB(); 
+        if(v==0){}
+        
+        if(v1==0){}
 
         
-
+        //nivel 3 creación del directorio raíz
+        reservar_inodo('d', 7);
 
         //BUMOUNT
         bumount();
