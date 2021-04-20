@@ -1,4 +1,4 @@
-#include "ficheros_basico.h"
+#include "ficheros.h"
 // Escribe el contenido de un buffer de memoria (buf_original), de tamao nbytes en un fichero/directorio.
 // Le indicamos la posición de escritura inicial en bytes lógicos (offset) con respecto al inodo y
 // el número de bytes que hay que escribir
