@@ -192,48 +192,44 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
 
     //creamos array de caracteres de tamaño de un bloque
     char buf_bloque[BLOCKSIZE];
-    
 
     //tratamos el caso en que el primer y ultimo bloque coincidan, corresponderá a que hay un solo bloque
     if (primerBL == ultimoBL)
     {
         //primeramente leemos bloque físico del dispositivo virtual
         int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
-        if(nbfisico != -1)
+        if (nbfisico != -1)
         {
-            if(bread(nbfisico, buf_bloque) == -1)
+            if (bread(nbfisico, buf_bloque) == -1)
             {
                 fprintf(stderr, "Error de lectura en bloque físico\n");
                 return -1;
             }
             //escribimos en nbytes (se ha invertido el memcpy de mi_write_f)
-            memcpy(buf_original,buf_bloque + desp1, nbytes);
-
-            
+            memcpy(buf_original, buf_bloque + desp1, nbytes);
         }
         //como solo trata con un bloque:
         nbytesLeídosReal = nbytes;
-        
     }
     //en caso de no haber un solo bloque
-    else{
+    else
+    {
 
         //Fase 1: Primer bloque
 
-    //leemos bloque físico del dispositivo virtual
-    int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
-     if(nbfisico != -1)
+        //leemos bloque físico del dispositivo virtual
+        int nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
+        if (nbfisico != -1)
         {
-            if(bread(nbfisico, buf_bloque) == -1)
+            if (bread(nbfisico, buf_bloque) == -1)
             {
                 fprintf(stderr, "Error de lectura en bloque físico\n");
                 return -1;
             }
             //escribimos en nbytes (se ha invertido el memcpy de mi_write_f)
-            memcpy(buf_original,buf_bloque + desp1, BLOCKSIZE - desp1);
-
+            memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
         }
-        //se lee después del if porque en caso de devolver -1 se debe contabilizar    
+        //se lee después del if porque en caso de devolver -1 se debe contabilizar
         nbytesLeídosReal = nbytesLeídosReal + (BLOCKSIZE - desp1);
 
         //Fase 2: Bloques lógicos intermedios
@@ -241,22 +237,49 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         {
             //iteramos para cada bloque logico intermedio
             nbfisico = traducir_bloque_inodo(ninodo, i, 0);
-            //escribimos el fragmento correspondiente del buf_original
-            if (bwrite(nbfisico, buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE) == -1)
+            if(nbfisico != -1){
+                if (bread(nbfisico, buf_bloque) == -1)
             {
-                fprintf(stderr, "Error de escritura en el bloque físico\n");
+                fprintf(stderr, "Error de lectura en bloque físico\n");
                 return -1;
             }
+            
+            memcpy(buf_original + (BLOCKSIZE - desp1) + (i - primerBL - 1) * BLOCKSIZE, buf_bloque , BLOCKSIZE);
+            }
+            nbytesLeídosReal = nbytesLeídosReal + BLOCKSIZE;
+           
+        }
 
 
+        //Fase 3: Bloque final
+        nbfisico= traducir_bloque_inodo(ninodo, ultimoBL, 0);
+         if (nbfisico != -1)
+        {
+            if (bread(nbfisico, buf_bloque) == -1)
+            {
+                fprintf(stderr, "Error de lectura en bloque físico\n");
+                return -1;
+            }
+            //escribimos en nbytes (se ha invertido el memcpy de mi_write_f)
+            memcpy(buf_original, (nbytes - desp2 -1), buf_bloque, desp2+1);
+        }
+        nbytesLeídosReal= nbytesLeídosReal + (desp2 +1);
 
 
+        //Actualizar inodos y atime
+        if(leer_inodo(ninodo, &inodo) == -1){
 
+            fprintf(stderr, "Error de lectura del inodo\n");
+            return -1;
 
+        }
+        time(inodo.atime);
+        
     }
 
     //devolvemos cantidad de bytes leídos
-    return nbytesLeídosReal;
+        return nbytesLeídosReal;
+        
 }
 
 //Mi stat, guarda los METADATOS de un nodo indicado por ninodo.
@@ -270,6 +293,7 @@ int mi_stat_f(unsigned int ninodo, struct stat *p_stat)
         fprintf(stderr, "Error lectura inodo\n");
         return -1;
     }
+
     //Tipo
     p_stat->tipo = nodo.tipo;
     //Permisos

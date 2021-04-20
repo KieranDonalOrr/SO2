@@ -7,6 +7,7 @@ void printBits(struct superbloque SB);
 
 int main(int argc, char **argv)
 {
+	void *buf[BLOCKSIZE];
 	struct superbloque SB;
 	int descriptor;
 	if (argc < 2)
@@ -19,11 +20,22 @@ int main(int argc, char **argv)
 	{
 		exit(1);
 	}
-	if (bread(posSB, &SB) < 0)
+	if (bread(posSB, buf) < 0)
 		return -1;
+	
+	memcpy(&SB, buf, sizeof(struct superbloque));
+	
 	printSuperBloque(SB);
-	printIA(SB);
-	printBits(SB);
+	//printIA(SB);
+	//printBits(SB);
+	int resver= reservar_inodo('f', 6);
+	printf("\n%d\n", resver);
+	traducir_bloque_inodo(resver, 8 , '1'); 
+    traducir_bloque_inodo(resver, 204 , '1');
+    traducir_bloque_inodo(resver, 30004 , '1');
+    traducir_bloque_inodo(resver, 400004 , '1');
+    traducir_bloque_inodo(resver, 468750 , '1');
+
 
 	if (bumount(descriptor) < 0)
 	{
