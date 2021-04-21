@@ -74,6 +74,7 @@ int tamMB(unsigned int nbloques);
 int tamAI(unsigned int ninodos);
 int initSB(unsigned int nbloques, unsigned int ninodos);
 int initMB();
+int initAI();
 //funciones correspondientes al nivel3
 int escribir_bit(unsigned int nBloque, unsigned int bit);
 unsigned char leer_bit(unsigned int nBloque);

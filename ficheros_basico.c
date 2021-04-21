@@ -83,15 +83,15 @@ int initMB(){
     void *buf[tam_bloque];
     //preparamos un buffer tamaño BLOCKSIZE
     memset(buf, 0, tam_bloque * sizeof(char));  
-    int result;
     for(int i = 0; i < setBloques; i ++){
-        result = bwrite(bloque, buf);
+         bwrite(bloque, buf);
         bloque ++;
     }
+    printf("Primer bloque de datos %d",SB.posPrimerBloqueDatos);
     for(int i = 0; i < SB.posPrimerBloqueDatos; i++){ 
     reservar_bloque();
     }
-    return result;
+    return 0;
 }
 
 
@@ -224,7 +224,7 @@ int reservar_bloque()
     unsigned char buffer[BLOCKSIZE];
     unsigned char bufferAux[BLOCKSIZE];
     int bloqueMB;
-    int numBloque;
+    unsigned int numBloque;
     int poSByte;
     int poSBit;
     unsigned char mascara = 128;
@@ -240,6 +240,7 @@ int reservar_bloque()
         memset(bufferAux, 255, BLOCKSIZE);
         //localizamos posicion primer bloque del MB
         bloqueMB = SB.posPrimerBloqueMB;
+        
         //leemos mapa de bits utilizando el buffer seteado a 1
         if (bread(bloqueMB, buffer) == -1)
         {
@@ -274,16 +275,18 @@ int reservar_bloque()
         for (poSByte = 0; buffer[poSByte] == 255; poSByte++)
         {
         }
-        poSBit = 0;
+        
         //el bit encontrado debe corresponder al primer bloque libre
         //comprobamos que esté dentro del tamaño del mapa de bits
-        if (buffer[poSByte] < 255)
+        if (buffer[poSByte] != 255)
         {
+            poSBit = 0;
             //buscamos en qué posición del bit está el 0
-            for (; buffer[poSByte] & mascara; poSBit++)
+            while( buffer[poSByte] & mascara)
             {
                 //desplazamiento de bits a la izquierda
                 buffer[poSByte] <<= 1;
+                poSBit++;
             }
         }
         //cálculo para determinar finalmente el nº de bloque
@@ -293,7 +296,7 @@ int reservar_bloque()
         if (escribir_bit(numBloque, 1) != -1)
         {
             //decrementamos cantidad de bloques libres
-            SB.cantBloquesLibres = SB.cantBloquesLibres - 1;
+            SB.cantBloquesLibres--;
             //guardamos el superbloque actualizado
             if (bwrite(posSB, &SB) == -1)
             {
@@ -420,7 +423,6 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos)
         //desde que se ha cambiado el tipo de estructura que es leer_inodo no se puede hacer este tipo de asignación
         leer_inodo(SB.posPrimerInodoLibre, &inodo);
         numInodo = SB.posPrimerInodoLibre;
-        printf("\nPrimer inodo libre: %d",numInodo);
         SB.posPrimerInodoLibre = inodo.punterosDirectos[0];
         inodo.tipo = tipo;
         inodo.permisos = permisos;
