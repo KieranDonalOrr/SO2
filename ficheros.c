@@ -261,7 +261,8 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
                 return -1;
             }
             //escribimos en nbytes (se ha invertido el memcpy de mi_write_f)
-            memcpy(buf_original, (nbytes - desp2 -1), buf_bloque, desp2+1);
+            memcpy(buf_original + (nbytes - desp2 -1), buf_bloque, desp2 + 1);
+            
         }
         nbytesLeídosReal= nbytesLeídosReal + (desp2 +1);
 

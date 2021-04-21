@@ -2,7 +2,7 @@
 
 
 
-struct inodo {     // comprobar que ocupa 128 bytes haciendo un sizeof(inodo)!!!
+struct stat{     
    unsigned char tipo;     // Tipo ('l':libre, 'd':directorio o 'f':fichero)
    unsigned char permisos; // Permisos (lectura y/o escritura y/o ejecución)
  
