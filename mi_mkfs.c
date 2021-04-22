@@ -26,10 +26,10 @@ int main (int argc, char **argv){
         }
         initSB(nbloques, nbloques/4); 
         
-        int v = initMB(); 
-        if(v==0){}
-        int v1 = initAI();
-        if(v1==0){}
+       initMB(); 
+       
+        initAI();
+        
 
         
         //nivel 3 creación del directorio raíz

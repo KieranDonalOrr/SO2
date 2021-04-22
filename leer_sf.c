@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	//printIA(SB);
 	//printBits(SB);
 	int resver= reservar_inodo('f', 6);
-	printf("\n%d\n", resver);
+	
 	traducir_bloque_inodo(resver, 8 , '1'); 
     traducir_bloque_inodo(resver, 204 , '1');
     traducir_bloque_inodo(resver, 30004 , '1');
@@ -78,7 +78,6 @@ void printIA(struct superbloque SB)
 	struct inodo inodo;
 	
 	struct tm *ts;
-	printf("\n\n \t*****Array de Inodos*****\n");
 	printf("#Tamaño Inodo: %d\n", BLOCKSIZE / 8);
 	for (int ninodo = 0; ninodo < SB.totInodos; ninodo++)
 	{
