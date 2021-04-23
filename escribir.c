@@ -60,6 +60,9 @@ int escribir(int argc, char **argv)
 
         mi_stat_f(ninodo, &stat);
 
+        printf("stat.tamEnBytesLog: %d\n", stat.tamEnBytesLog);
+        printf("stat.numBloquesOcupados %d\n", stat.numBloquesOcupados);
+        
         //haha faltan cosas.
         //utilizar mi_stat_f CREO uns aludo hay que pasarle el inodo al mi stat f y te suelta los metadatos
     }

@@ -1,6 +1,5 @@
 #include "ficheros.h"
 
-//Le pasaremos por línea de comandos un nº de inodo obtenido con el programa anterior. HAHAHAHA  FUK
 
 int main( int argc, char** argv){
 
@@ -43,7 +42,7 @@ int main( int argc, char** argv){
         offset=offset+aux;
     }
     
-        fprintf(stderr, "\n,>El total de bytes leídos: %i\n", total);
+        fprintf(stderr, "\n,>El total de bytes leídos: %i\n", cantidadLeido);
     
     
 }
