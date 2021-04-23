@@ -716,9 +716,18 @@ int liberar_inodo(unsigned int ninodo)
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
 {
 
-    unsigned int ultimoBL;
+    unsigned int ultimoBL, nivel_punteros, indice, ptr, nBL;
+    int nRangoBL;
+    unsigned int bloque_punteros[NPUNTEROS];//1024 bytes
+    unsigned char bufAux_punteros[BLOCKSIZE];//1024 bytes
+    int ptr_nivel[3];
+    int indices[3];
+    int liberados;
 
-    //ultimo bloque lógico del inodo
+    liberados= 0;
+    //el fichero está vacío
+    if((inodo->tamEnBytesLog)==0) return 0;
+    //obtenemos el último bloque lógico del inodo
     if ((inodo->tamEnBytesLog % BLOCKSIZE) == 0)
     {
 
@@ -729,19 +738,34 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
         
         ultimoBL = inodo->tamEnBytesLog / BLOCKSIZE ;
     }
-
-    //comprobamos que al eliminar un puntero concreto no le queden más ocupados
-
-    unsigned char bufAux_punteros[BLOCKSIZE];//1024 bytes
-    unsigned int bloque_punteros[NPUNTEROS];//1024 bytes
+    //fijamos contenido del buffer auxiliar a 0
     memset(bufAux_punteros, 0, BLOCKSIZE);
-   
+    ptr=0;
+    for( nBL= primerBL; nBL <= ultimoBL; nBL++){
+
+        nRangoBL= obtener_nRangoBL(*inodo, nBL, &ptr);//0:D, 1:IO,, 2:I0, 2I1, 3:I2
+        if(nRangoBL < 0) return -1;
+        nivel_punteros = nRangoBL; //el nivel_punteros +alto cuelga del inodo
+
+        while(ptr > 0 && nivel_punteros >0){ //cuelgan bloques de punteros
+            indice= obtener_indice(nBL, nivel_punteros);
+            if((indice==0)||( nBL= primerBL)){
+
+
+            }
+
+        }
+
+
+    }
+
+    //si la condición se cumple implica que el bloque de punteros está todo a 0
     // if(memcmp(bloque_punteros, bufAux_punteros, BLOCKSIZE) == 0){
 
 
 
-    //}
-
+    // }
+    //wtf en el pseudocódigo de adelaida no aparece este último paso 
 
 }
 

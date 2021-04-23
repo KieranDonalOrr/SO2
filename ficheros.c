@@ -1,3 +1,4 @@
+#include "ficheros_basico.h"
 #include "ficheros.h"
 // Escribe el contenido de un buffer de memoria (buf_original), de tamao nbytes en un fichero/directorio.
 // Le indicamos la posición de escritura inicial en bytes lógicos (offset) con respecto al inodo y
@@ -261,8 +262,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
                 return -1;
             }
             //escribimos en nbytes (se ha invertido el memcpy de mi_write_f)
-            memcpy(buf_original + (nbytes - desp2 -1), buf_bloque, desp2 + 1);
-            
+            memcpy(buf_original + (nbytes - desp2 -1), buf_bloque, desp2+1);
         }
         nbytesLeídosReal= nbytesLeídosReal + (desp2 +1);
 
