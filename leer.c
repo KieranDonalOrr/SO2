@@ -43,7 +43,7 @@ int main( int argc, char** argv){
         offset=offset+aux;
     }
     
-        fprintf(stderr, "\n,>El total de bytes leídos: %i\n", aux);
+        fprintf(stderr, "\n,>El total de bytes leídos: %i\n", total);
     
     
 }
