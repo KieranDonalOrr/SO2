@@ -47,9 +47,7 @@ int escribir(int argc, char **argv)
         printf("Nº inodo reservado: %d\n", ninodo);
         printf("offset:  %d\n", offset[i]);
 
-        
-       // [traducir_bloque_inodo()→ inodo.punterosDirectos[8] = 3139 (reservado BF 3139 para BL 8)]
-        fprintf(stderr, "");
+
     
         int write = mi_write_f(ninodo, *buffer, offset[i], nbytes);
         printf("Los bytes escritos por mi_write_f han sido: %d", write);
@@ -63,7 +61,5 @@ int escribir(int argc, char **argv)
         printf("stat.tamEnBytesLog: %d\n", stat.tamEnBytesLog);
         printf("stat.numBloquesOcupados %d\n", stat.numBloquesOcupados);
         
-        //haha faltan cosas.
-        //utilizar mi_stat_f CREO uns aludo hay que pasarle el inodo al mi stat f y te suelta los metadatos
     }
 }
