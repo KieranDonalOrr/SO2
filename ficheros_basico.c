@@ -665,7 +665,7 @@ int liberar_inodo(unsigned int ninodo)
     }
 
     //llamar a la función auxiliar par aliberar todos los bloques del inodo
-    int liberarBLS = liberar_bloques_inodo(0, &inodo); //no implementado aún **********************************
+    int liberarBLS = liberar_bloques_inodo(0, &inodo); 
 
     //a la cantidad de bloques ocupados del inodo se le resta la cantidad de liberados de la función anterior
     inodo.numBloquesOcupados -= liberarBLS;
@@ -756,12 +756,14 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
             indice = obtener_indice(nBL, nivel_punteros);
             if ((indice == 0) || (nBL = primerBL)){
             
+            }
         }
     }
-
     //si la condición se cumple implica que el bloque de punteros está todo a 0
     // if(memcmp(bloque_punteros, bufAux_punteros, BLOCKSIZE) == 0){
 
     // }
     //wtf en el pseudocódigo de adelaida no aparece este último paso
+    return liberados;
+
 }
