@@ -28,13 +28,13 @@ int main(int argc, char **argv)
 	printSuperBloque(SB);
 	//printIA(SB);
 	//printBits(SB);
-	int resver= reservar_inodo('f', 6);
+	//int resver= reservar_inodo('f', 6);
 	
-	traducir_bloque_inodo(resver, 8 , '1'); 
-    traducir_bloque_inodo(resver, 204 , '1');
-    traducir_bloque_inodo(resver, 30004 , '1');
-    traducir_bloque_inodo(resver, 400004 , '1');
-    traducir_bloque_inodo(resver, 468750 , '1');
+	//traducir_bloque_inodo(resver, 8 , '1'); 
+    //(traducir_bloque_inodo(resver, 204 , '1');
+    //traducir_bloque_inodo(resver, 30004 , '1');
+    //traducir_bloque_inodo(resver, 400004 , '1');
+    //traducir_bloque_inodo(resver, 468750 , '1');
 
 
 	if (bumount(descriptor) < 0)

@@ -1,6 +1,6 @@
 
 #include "ficheros_basico.h"
-struct stat {     
+struct STAT {     
    unsigned char tipo;     // Tipo ('l':libre, 'd':directorio o 'f':fichero)
    unsigned char permisos; // Permisos (lectura y/o escritura y/o ejecución)
  
@@ -15,3 +15,9 @@ struct stat {
    unsigned int tamEnBytesLog;      // Tamaño en bytes lógicos
    unsigned int numBloquesOcupados; // Cantidad de bloques ocupados zona de datos
 };
+
+int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes);
+int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes);
+int mi_stat_f(unsigned int ninodo, struct STAT *p_stat);
+int mi_chmod_f(unsigned int ninodo, unsigned char permisos);
+int mi_truncar_f(unsigned int ninodo, unsigned int nbytes);

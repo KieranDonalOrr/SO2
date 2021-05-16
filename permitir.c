@@ -1,6 +1,6 @@
 #include "ficheros.h"
 
-int permitir(int argc, char **argv)
+int main(int argc, char **argv)
 {
     //validación de sintaxis
     if( argc !=4){
@@ -9,7 +9,7 @@ int permitir(int argc, char **argv)
         return -1;
     }
     //montamos dispositivo
-    bomunt(argv[1]);
+    bmount(argv[1]);
 
     //llamada a mi_chmod_f() con los argumentos recibidos convertidos a enteros
 
