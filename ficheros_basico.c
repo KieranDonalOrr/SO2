@@ -786,7 +786,7 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
                         liberados++;
 
                         fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %i de punteros_nivel%i correspondiente al BL: %i]\n",
-                        ptr, nivel_punteros + 1, nBL);
+                        ptr, nivel_punteros, nBL);
 
                         if(nivel_punteros == nRangoBL){
                             inodo -> punterosIndirectos[nRangoBL - 1] = 0;
