@@ -3,54 +3,62 @@
 // Escribe el contenido de un buffer de memoria (buf_original), de tamao nbytes en un fichero/directorio.
 // Le indicamos la posición de escritura inicial en bytes lógicos (offset) con respecto al inodo y
 // el número de bytes que hay que escribir
-int mi_write_f(unsigned int ninodo, const void *buf_original,unsigned int offset ,unsigned int nbytes){
+int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes)
+{
     struct inodo inodo;
-    void *buf_bloque =  malloc(BLOCKSIZE);
+    void *buf_bloque = malloc(BLOCKSIZE);
     int total = 0;
+    int desp1 = offset % BLOCKSIZE;
+    int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
+    int primerBLogico = offset / BLOCKSIZE;
+    int ultimoBLogico = (offset + nbytes - 1) / BLOCKSIZE;
     leer_inodo(ninodo, &inodo);
-    if((inodo.permisos & 2) == 2){
-        int primerBLogico = offset/BLOCKSIZE;
-        int ultimoBLogico = (offset + nbytes - 1) / BLOCKSIZE;
-        int desp1 = offset % BLOCKSIZE;
-        int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
-        int BFisico = traducir_bloque_inodo(ninodo,primerBLogico,1);
-        if(desp1 != 0){
+    if ((inodo.permisos & 2) == 2)
+    {
+        int BFisico = traducir_bloque_inodo(ninodo, primerBLogico, 1);
+        if (desp1 != 0)
+        {
             bread(BFisico, buf_bloque);
         }
-        if(primerBLogico == ultimoBLogico){
-            memcpy(buf_bloque + desp1, buf_original, desp2 + 1 - desp1);//-desp1...
+        if (primerBLogico == ultimoBLogico)
+        {
+            memcpy(buf_bloque + desp1, buf_original, desp2 + 1 - desp1);
             total += desp2 + 1 - desp1;
             bwrite(BFisico, buf_bloque);
         }
-        else{
+        else
+        {
             desp2 = offset + nbytes - 1;
-            memcpy (buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
+            memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
             total += BLOCKSIZE - desp1;
             bwrite(BFisico, buf_bloque);
-            for(int i = primerBLogico + 1; i != ultimoBLogico; i ++){
+            for (int i = primerBLogico + 1; i != ultimoBLogico; i++)
+            {
                 BFisico = traducir_bloque_inodo(ninodo, i, 1);
                 total += bwrite(BFisico, (buf_original + (BLOCKSIZE - desp1) + (i - primerBLogico - 1) * BLOCKSIZE));
             }
             desp2 = desp2 % BLOCKSIZE;
             BFisico = traducir_bloque_inodo(ninodo, ultimoBLogico, 1);
             bread(BFisico, buf_bloque);
-            memcpy (buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
+            memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
             total += desp2 + 1;
             bwrite(BFisico, buf_bloque);
         }
         total += offset;
-        leer_inodo(ninodo, &inodo);//volvemos a leer el inodo, se han reservado bloques
-        if(inodo.tamEnBytesLog < total){//modifica EOF fichero
-            inodo.tamEnBytesLog = total; //Si lo escrito ocupa más que lo que ya habia
-            inodo.ctime = time(NULL);// Actualizamos ctime, hemos modificado el inodo
+        leer_inodo(ninodo, &inodo);
+        if (inodo.tamEnBytesLog < total)
+        {
+            inodo.tamEnBytesLog = total;
+            inodo.ctime = time(NULL);
         }
-        inodo.mtime = time (NULL);//modificamos mtime, hemos escrito datos
-        escribir_inodo(inodo,ninodo);//escribimos el inodo
-        return total; //nbytes escritos que si va bien deberia ser total=nbytes
+        inodo.mtime = time(NULL);
+        escribir_inodo(inodo, ninodo);
+        return total;
     }
-    else{
+    else
+    {
         fprintf(stderr, "\n¡No hay permisos de escritura!\n");
-        //el inodo no tiene permisos de escritura
+
         return EXIT_FAILURE;
     }
 }
