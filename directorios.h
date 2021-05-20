@@ -7,7 +7,6 @@
 #define ERROR_ENTRADA_YA_EXISTENTE -6
 #define ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO -7
 #define ERROR_PERMISO_ESCRITURA -5
-#define TAMNOMBRE 60 //tamaño del nombre de directorio o fichero
 #define PROFUNDIDAD 32 //profundidad máxima del árbol de directorios
 
 
