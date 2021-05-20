@@ -10,8 +10,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        int length = strlen(argv[3]);
-
+    
         int permisos = atoi(argv[2]);
         if (permisos < 0)
         {

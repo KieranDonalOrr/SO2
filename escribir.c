@@ -14,7 +14,6 @@ int main(int argc, char **argv)
     char *buffer = malloc(l);
     printf("longitud del texto %d \n", l);
     //creamos y mostramos nInodo
-    int read=0;   
     unsigned int nInodo;
     unsigned int diferentes_inodos = atoi(argv[3]);
     dir = argv[1];
@@ -42,7 +41,7 @@ int main(int argc, char **argv)
         nInodo = reservar_inodo('f', 6);
         strcpy(buffer, argv[2]);
         
-        unsigned int nbytes = strlen(buffer);
+        
         //bucle que itera 5 veces para recorrer todos los offset
         for (int i = 0; i < 5; i++)
         {
@@ -64,7 +63,6 @@ int main(int argc, char **argv)
         nInodo = reservar_inodo('f', 6);
         strcpy(buffer, argv[2]);
         fprintf(stderr,"inodos=0\n");
-        unsigned int nbytes = strlen(buffer);
         //bucle que itera 5 veces para recorrer todos los offset
         for (int i = 0; i < 4; i++)
         {

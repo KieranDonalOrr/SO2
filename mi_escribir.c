@@ -5,7 +5,9 @@ int main(int argc, char **argv){
 
 struct STAT STAT;
 struct superbloque SB;
-    dir = argv[1];
+    const char *dir;
+    int nBytesEsc;
+    int nTextoEscrito = 0;
     dir=argv[1];   
     bmount(dir); 
     
@@ -23,9 +25,27 @@ struct superbloque SB;
         return -1;
     }
 
-    //no está terminado
+   
 
+    //pedirá permisos de escritura, mi write llamará a mi_write_f
+    //argv[3] corresponde con la cantidad de texto escrito
+    nTextoEscrito = strlen(argv[3]);
+    //argv[4] corresponde con la entrada del offset
+    nBytesEsc = mi_write(argv[2], argv[3], argv[4], nTextoEscrito);
 
+    //testea que haya escrito bien
+    if(nBytesEsc <0){
+        fprintf(stderr, "Error de escritura nivel9. mi_escribir.c");
+        
+        return -1;
+    }
+
+    //antes de desmontar, mostrar la cantidad de bytes escritos
+    printf("Cantidad de bytes escritos con mi_escribir: %d\n", nBytesEsc);
+
+    bumount(dir);
 
     return 0;
+
+    //no sé si falta algo, yo creo que esto es lo que pide.
 }

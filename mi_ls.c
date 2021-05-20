@@ -8,8 +8,6 @@ int main (int argc, char **argv){
         fprintf(stderr, "La sintaxis es incorrecta\n");
         return 0;
     }
-    char tipo = '\0';
-    struct superbloque SB;
     char *buffer = malloc(TAMBUFFER);
     memset(buffer, 0, sizeof(char) * TAMBUFFER);
     if((mi_dir(argv[2], buffer)) == -1){

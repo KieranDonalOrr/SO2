@@ -66,8 +66,8 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     memset(buf_entradas, 0, BLOCKSIZE / sizeof(struct entrada) * sizeof(struct entrada));
     //o bien un array de las entradas que caben en un bloque, para optimizar la lectura en RAM
 
-    int cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada); //cantidad de entradas que contiene el inodo
-    int num_entrada_inodo = 0;                                                  //nº de entrada inicial
+     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada); //cantidad de entradas que contiene el inodo
+     num_entrada_inodo = 0;                                                  //nº de entrada inicial
     if (cant_entradas_inodo > 0)
     {
         mi_read_f(*p_inodo_dir, buf_entradas, num_entrada_inodo * sizeof(struct entrada), BLOCKSIZE);
@@ -87,7 +87,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         case 1: //modo escritura
             //Creamos la entrada en el directorio referenciado por *p_inodo_dir
             //si es fichero no permitir escritura
-            if (inodo_dir.tipo = 'f')
+            if (inodo_dir.tipo == 'f')
             {
                 return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
             }
@@ -98,7 +98,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
             }
             else
                 strcpy(entrada.nombre, inicial);
-            if (tipo = 'd')
+            if (tipo == 'd')
             {
                 if (strcmp(final, "/") == 0)
                 {
@@ -113,7 +113,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
             else
             { //es un fichero
                 entrada.ninodo = reservar_inodo('f', 6);
-                printf(stderr, "[buscar_entrada()->reservado inodo: %d tipo 'f' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
+                printf("[buscar_entrada()->reservado inodo: %d tipo 'f' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
             }
 
             if (mi_write_f(*p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog, sizeof(struct entrada)) == -1)
@@ -180,7 +180,6 @@ void mostrar_error_buscar_entrada(int error)
 
 int mi_creat(const char *camino, unsigned char permisos)
 {
-    struct superbloque SB;
     unsigned int p_inodo_dir, p_inodo, p_entrada;
     int error;
     p_entrada = 0;
@@ -197,7 +196,6 @@ int mi_creat(const char *camino, unsigned char permisos)
 
 int mi_dir(const char *camino, char *buffer)
 {
-    struct superbloque SB;
     unsigned int p_inodo_dir, p_inodo, p_entrada;
     int error;
     p_entrada = 0;
@@ -209,11 +207,8 @@ int mi_dir(const char *camino, char *buffer)
         return -1;
     }
     int offset = 0;
-    char array[10]; //maximo valor de un "unsigned int"(10 cifras)
     struct entrada entrada;
     struct inodo inodo;
-    struct tm *tm; //ver info: struct tm
-    char tmp[100];
     if (camino[strlen(camino) - 1] == '/')
     { //mi_read_f(p_inodo, &entrada, offset, sizeof(struct entrada));
         leer_inodo(p_inodo, &inodo);
@@ -345,7 +340,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 
     unsigned int p_inodo;
     unsigned int p_inodo_dir, p_entrada;
-    int bytesLeídos;
+    int bytesLeidos;
 
     //misma metodología que en mi_write, pero inversa
     //comprobamos la lectura sobre el mismo inodo
@@ -364,13 +359,13 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     }
 
     //si la entrada existe llamamos a mi_read_f
-    bytesLeídos = mi_read_f(p_inodo, buf, offset, nbytes);
-    if (bytesLeídos == -1)
+    bytesLeidos = mi_read_f(p_inodo, buf, offset, nbytes);
+    if (bytesLeidos == -1)
     {
         fprintf(stderr, "Fallo al leer directorio.c nivel9, mi_read");
         return -1;
     }
 
     //devuelve bytes leídos
-    return bytesLeídos;
+    return bytesLeidos;
 }

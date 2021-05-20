@@ -19,7 +19,7 @@ int main( int argc, char** argv){
     int aux=1;
 
 
-    bumount(direccion);
+    bmount(direccion);
     leer_inodo(nInodo,&inodoAux);
     while (inodoAux.tipo!='l'&& finalDeFichero==0){
         memset(bufferTexto, 0, nBytes);
@@ -43,6 +43,7 @@ int main( int argc, char** argv){
     }
     
         fprintf(stderr, "\n,>El total de bytes leídos: %i\n", cantidadLeido);
+        return 1;
     
     
 }
