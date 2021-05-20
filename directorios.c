@@ -278,7 +278,7 @@ int mi_chmod(const char *camino, unsigned char permisos)
     return 0;
 }
 
-int mi_stat(const char *camino, unsigned char permisos)
+int mi_stat(const char *camino, struct STAT *p_stat)
 {
     struct superbloque SB;
     unsigned int p_inodo_dir, p_inodo;
@@ -286,13 +286,13 @@ int mi_stat(const char *camino, unsigned char permisos)
     int error;
     bread(posSB, &SB);
     p_inodo_dir = p_inodo = SB.posInodoRaiz;
-    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
     if (error < 0)
     {
         mostrar_error_buscar_entrada(error);
         return -1;
     }
-    mi_stat_f(p_inodo, permisos);
+    mi_stat_f(p_inodo, p_stat);
     return 0;
 }
 
