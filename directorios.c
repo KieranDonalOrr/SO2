@@ -195,13 +195,13 @@ int mi_creat(const char *camino, unsigned char permisos)
     return 0;
 }
 
-int mi_dir(const char *camino, char *buffer);
+int mi_dir(const char *camino, char *buffer)
 {
     struct superbloque SB;
     unsigned int p_inodo_dir, p_inodo, p_entrada;
     int error;
     p_entrada = 0;
-    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
 
     if (error < 0)
     {
@@ -218,27 +218,23 @@ int mi_dir(const char *camino, char *buffer);
     { //mi_read_f(p_inodo, &entrada, offset, sizeof(struct entrada));
         leer_inodo(p_inodo, &inodo);
         int cant_entradas_inodo = inodo.tamEnBytesLog / sizeof(struct entrada);
-        fprintf(stderr, "Total: %i\n", cant_entradas_inodo);
         struct entrada buf_entradas[BLOCKSIZE / sizeof(struct entrada)];
         offset = offset + mi_read_f(p_inodo, buf_entradas, offset, BLOCKSIZE);
 
-        for(int i = 0; i < cant_entradas_inodo; i++){
+        for (int i = 0; i < cant_entradas_inodo; i++)
+        {
             leer_inodo(buf_entradas[i % (BLOCKSIZE / sizeof(struct entrada))].ninodo, &inodo);
-            if (ext == false)
-            {
-                strcat(buffer, GREEN);
-                strcat(buffer, buf_entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre); //ponemos el nombre en el buffer
-                strcat(buffer, RESET);
-            }
 
-            if ((strlen(buffer) % TAMFILA) != 0)
-            { //rellenamos hasta TAMFILA
-                while ((strlen(buffer) % TAMFILA) != 0)
+            strcat(buffer, buf_entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre); //ponemos el nombre en el buffer
+
+            if ((strlen(buffer) % 100) != 0)
+            { //rellenamos hasta 100
+                while ((strlen(buffer) % 100) != 0)
                 {
                     strcat(buffer, " ");
                 }
             }
-            strcat(buffer, "\n"); //separador para la próxima entrada
+            strcat(buffer, "\n");
             if ((offset % (BLOCKSIZE / sizeof(struct entrada))) == 0)
             {
                 offset += mi_read_f(p_inodo, buf_entradas, offset, sizeof(struct entrada));
@@ -248,26 +244,57 @@ int mi_dir(const char *camino, char *buffer);
     else
     {
         mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * p_entrada, sizeof(struct entrada));
-        leer_inodo(entrada.ninodo, &inodo); //leemos el inodo asociado a ella
-        *tipo = inodo.tipo;
+        leer_inodo(entrada.ninodo, &inodo);
 
-        strcat(buffer, GREEN);
-        strcat(buffer, entrada.nombre); //ponemos el nombre en el buffer
-        strcat(buffer, RESET);
+        strcat(buffer, entrada.nombre);
 
-        if ((strlen(buffer) % TAMFILA) != 0)
+        if ((strlen(buffer) % 100) != 0)
         {
-            while ((strlen(buffer) % TAMFILA) != 0)
+            while ((strlen(buffer) % 100) != 0)
             {
                 strcat(buffer, " ");
             }
         }
         strcat(buffer, "\n");
     }
-return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
+int mi_chmod(const char *camino, unsigned char permisos)
+{
+    struct superbloque SB;
+    unsigned int p_inodo_dir, p_inodo;
+    unsigned int p_entrada = 0;
+    int error;
+    bread(posSB, &SB);
+    p_inodo_dir = p_inodo = SB.posInodoRaiz;
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
+    if (error < 0)
+    {
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+    mi_chmod_f(p_inodo, permisos);
+    return 0;
+}
 
+int mi_stat(const char *camino, unsigned char permisos)
+{
+    struct superbloque SB;
+    unsigned int p_inodo_dir, p_inodo;
+    unsigned int p_entrada = 0;
+    int error;
+    bread(posSB, &SB);
+    p_inodo_dir = p_inodo = SB.posInodoRaiz;
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
+    if (error < 0)
+    {
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+    mi_stat_f(p_inodo, permisos);
+    return 0;
+}
 
 //definida como variable global
 static struct UltimaEntrada UltimaEntradaEscritura;
