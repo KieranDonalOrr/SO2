@@ -177,3 +177,173 @@ void mostrar_error_buscar_entrada(int error)
         break;
     }
 }
+
+int mi_creat(const char *camino, unsigned char permisos)
+{
+    struct superbloque SB;
+    unsigned int p_inodo_dir, p_inodo, p_entrada;
+    int error;
+    p_entrada = 0;
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
+
+    if (error < 0)
+    {
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+
+    return 0;
+}
+
+int mi_dir(const char *camino, char *buffer);
+{
+    struct superbloque SB;
+    unsigned int p_inodo_dir, p_inodo, p_entrada;
+    int error;
+    p_entrada = 0;
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
+
+    if (error < 0)
+    {
+        mostrar_error_buscar_entrada(error);
+        return -1;
+    }
+    int offset = 0;
+    char array[10]; //maximo valor de un "unsigned int"(10 cifras)
+    struct entrada entrada;
+    struct inodo inodo;
+    struct tm *tm; //ver info: struct tm
+    char tmp[100];
+    if (camino[strlen(camino) - 1] == '/')
+    { //mi_read_f(p_inodo, &entrada, offset, sizeof(struct entrada));
+        leer_inodo(p_inodo, &inodo);
+        int cant_entradas_inodo = inodo.tamEnBytesLog / sizeof(struct entrada);
+        fprintf(stderr, "Total: %i\n", cant_entradas_inodo);
+        struct entrada buf_entradas[BLOCKSIZE / sizeof(struct entrada)];
+        offset = offset + mi_read_f(p_inodo, buf_entradas, offset, BLOCKSIZE);
+
+        for(int i = 0; i < cant_entradas_inodo; i++){
+            leer_inodo(buf_entradas[i % (BLOCKSIZE / sizeof(struct entrada))].ninodo, &inodo);
+            if (ext == false)
+            {
+                strcat(buffer, GREEN);
+                strcat(buffer, buf_entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre); //ponemos el nombre en el buffer
+                strcat(buffer, RESET);
+            }
+
+            if ((strlen(buffer) % TAMFILA) != 0)
+            { //rellenamos hasta TAMFILA
+                while ((strlen(buffer) % TAMFILA) != 0)
+                {
+                    strcat(buffer, " ");
+                }
+            }
+            strcat(buffer, "\n"); //separador para la próxima entrada
+            if ((offset % (BLOCKSIZE / sizeof(struct entrada))) == 0)
+            {
+                offset += mi_read_f(p_inodo, buf_entradas, offset, sizeof(struct entrada));
+            }
+        }
+    }
+    else
+    {
+        mi_read_f(p_inodo_dir, &entrada, sizeof(struct entrada) * p_entrada, sizeof(struct entrada));
+        leer_inodo(entrada.ninodo, &inodo); //leemos el inodo asociado a ella
+        *tipo = inodo.tipo;
+
+        strcat(buffer, GREEN);
+        strcat(buffer, entrada.nombre); //ponemos el nombre en el buffer
+        strcat(buffer, RESET);
+
+        if ((strlen(buffer) % TAMFILA) != 0)
+        {
+            while ((strlen(buffer) % TAMFILA) != 0)
+            {
+                strcat(buffer, " ");
+            }
+        }
+        strcat(buffer, "\n");
+    }
+return EXIT_SUCCESS;
+}
+
+
+
+//definida como variable global
+static struct UltimaEntrada UltimaEntradaEscritura;
+
+//lee el contenido de un fichero
+int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes)
+{
+
+    unsigned int p_inodo, p_inodo_dir, p_entrada;
+    int bytesEsc;
+
+    //comprobamos si la escritura es sobre el mismo inodo
+    if (strcmp(UltimaEntradaEscritura.camino, camino) == 0)
+    {
+
+        p_inodo = UltimaEntradaEscritura.p_inodo;
+    }
+    //sino llamar a buscar_entrada()
+    else
+    {
+
+        buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2);
+
+        //actualizar los campos de UltimaEntradaEscritura con el p_inodo obtenido
+        //con el camino buscado
+        strcpy(UltimaEntradaEscritura.camino, camino);
+        UltimaEntradaEscritura.p_inodo = p_inodo;
+    }
+
+    bytesEsc = mi_write_f(p_inodo, buf, offset, nbytes);
+    if (bytesEsc == -1)
+    {
+
+        fprintf(stderr, "Error de escritura, nivel 9 directorio.c");
+        return -1;
+    }
+
+    //devuelve los bytes escritos
+    return bytesEsc;
+}
+
+//variable global de mi_read
+static struct UltimaEntrada UltimaEntradaLectura;
+
+//lee los nbytes del fichero indicado por camino a partir del offest y los copia en el buffer.
+int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes)
+{
+
+    unsigned int p_inodo;
+    unsigned int p_inodo_dir, p_entrada;
+    int bytesLeídos;
+
+    //misma metodología que en mi_write, pero inversa
+    //comprobamos la lectura sobre el mismo inodo
+    if (strcmp(camino, UltimaEntradaLectura.camino) == 0)
+    {
+
+        p_inodo = UltimaEntradaLectura.p_inodo;
+    }
+    else
+    {
+        //buscamos la entrada camino con buscar entrada para obtener el p_inodo
+        buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2); //no sé que hace el 2 este de permisos
+
+        strcpy(UltimaEntradaLectura.camino, camino);
+        UltimaEntradaLectura.p_inodo = p_inodo;
+    }
+
+    //si la entrada existe llamamos a mi_read_f
+    bytesLeídos = mi_read_f(p_inodo, buf, offset, nbytes);
+    if (bytesLeídos == -1)
+    {
+        fprintf(stderr, "Fallo al leer directorio.c nivel9, mi_read");
+        return -1;
+    }
+
+    //devuelve bytes leídos
+    return bytesLeídos;
+}
