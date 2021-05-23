@@ -13,15 +13,15 @@ int main(int argc, char **argv){
        //recibe como parámetro la ruta del fichero
     if(argv[2][strlen(argv[2]) -1]== '/'){
 
-        fprintf( stderr, "Ruta introducida no es de un fichero\n");
-        return -1;
+      fprintf( stderr, "Ruta introducida no es de un fichero\n");
+      return -1;
     }
 
     const char *direccion;
     direccion =argv[1];
     int nBytes =1500;
     int offset=0;
-    const void *tambuffer[nBytes];
+    char *tambuffer[nBytes];
     int cantidadLeido=0;
 
     bmount(direccion);
@@ -34,7 +34,7 @@ int main(int argc, char **argv){
       fprintf(stderr, "Error de lectura nivel9, mi_cat.c\n");
       return -1;
     }
-
+    printf("cantidad de bytes leidos es: %d",cantidadLeido);
 
     bumount(direccion);
 

@@ -3,8 +3,8 @@
 //Permite escribir texto en una posición de un fichero.de
 int main(int argc, char **argv){
 
-struct STAT STAT;
-struct superbloque SB;
+
+
     const char *dir;
     int nBytesEsc;
     int nTextoEscrito = 0;
@@ -31,7 +31,7 @@ struct superbloque SB;
     //argv[3] corresponde con la cantidad de texto escrito
     nTextoEscrito = strlen(argv[3]);
     //argv[4] corresponde con la entrada del offset
-    nBytesEsc = mi_write(argv[2], argv[3], argv[4], nTextoEscrito);
+    nBytesEsc = mi_write(argv[2], argv[3], atoi(argv[4]), nTextoEscrito);
 
     //testea que haya escrito bien
     if(nBytesEsc <0){

@@ -1,4 +1,4 @@
-#include "directorios.c"
+#include "directorios.h"
 #define TAMFILA 100
 #define TAMBUFFER (TAMFILA*1000) 
 
@@ -17,5 +17,6 @@ int main (int argc, char **argv){
     fprintf(stderr, "Nombre\n");
     fprintf(stderr, "----------------\n%s", buffer);
     bumount(argv[1]);
+    return 0;
 
 }

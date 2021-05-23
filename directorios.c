@@ -66,8 +66,8 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     memset(buf_entradas, 0, BLOCKSIZE / sizeof(struct entrada) * sizeof(struct entrada));
     //o bien un array de las entradas que caben en un bloque, para optimizar la lectura en RAM
 
-     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada); //cantidad de entradas que contiene el inodo
-     num_entrada_inodo = 0;                                                  //nº de entrada inicial
+    cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada); //cantidad de entradas que contiene el inodo
+    num_entrada_inodo = 0;                                                  //nº de entrada inicial
     if (cant_entradas_inodo > 0)
     {
         mi_read_f(*p_inodo_dir, buf_entradas, num_entrada_inodo * sizeof(struct entrada), BLOCKSIZE);
@@ -218,6 +218,7 @@ int mi_dir(const char *camino, char *buffer)
 
         for (int i = 0; i < cant_entradas_inodo; i++)
         {
+            fprintf(stderr,"e");
             leer_inodo(buf_entradas[i % (BLOCKSIZE / sizeof(struct entrada))].ninodo, &inodo);
 
             strcat(buffer, buf_entradas[i % (BLOCKSIZE / sizeof(struct entrada))].nombre); //ponemos el nombre en el buffer
@@ -297,9 +298,11 @@ static struct UltimaEntrada UltimaEntradaEscritura;
 //lee el contenido de un fichero
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes)
 {
-
+    struct superbloque SB;
     unsigned int p_inodo, p_inodo_dir, p_entrada;
     int bytesEsc;
+    bread(posSB, &SB);
+    int error = 0;
 
     //comprobamos si la escritura es sobre el mismo inodo
     if (strcmp(UltimaEntradaEscritura.camino, camino) == 0)
@@ -311,7 +314,12 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     else
     {
 
-        buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2);
+        error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2);
+        if (error < 0)
+        {
+            mostrar_error_buscar_entrada(error);
+            return -1;
+        }
 
         //actualizar los campos de UltimaEntradaEscritura con el p_inodo obtenido
         //con el camino buscado
@@ -337,10 +345,12 @@ static struct UltimaEntrada UltimaEntradaLectura;
 //lee los nbytes del fichero indicado por camino a partir del offest y los copia en el buffer.
 int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nbytes)
 {
-
+    struct superbloque SB;
     unsigned int p_inodo;
     unsigned int p_inodo_dir, p_entrada;
     int bytesLeidos;
+    bread(posSB, &SB);
+    int error = 0;
 
     //misma metodología que en mi_write, pero inversa
     //comprobamos la lectura sobre el mismo inodo
@@ -352,8 +362,13 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     else
     {
         //buscamos la entrada camino con buscar entrada para obtener el p_inodo
-        buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2); //no sé que hace el 2 este de permisos
+        error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4); 
 
+        if (error < 0)
+        {
+            mostrar_error_buscar_entrada(error);
+            return -1;
+        }
         strcpy(UltimaEntradaLectura.camino, camino);
         UltimaEntradaLectura.p_inodo = p_inodo;
     }
@@ -368,4 +383,155 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 
     //devuelve bytes leídos
     return bytesLeidos;
+}
+
+//crea el enlace de entrada de directorio camino2 al inodo especificado por otra entrada de camino1
+int mi_link(const char *camino1, const char *camino2){
+
+    struct superbloque SB;
+    unsigned int p_inodo1, p_inodo2, p_inodo_dir,p_inodo_dir2, p_entrada,p_entrada2;
+    struct inodo inodo1; 
+    int error = 0;
+    struct entrada entrada;
+    
+    
+    //necesariamente será un fichero.
+    if( (camino1[strlen(camino1) - 1] == '/') && (camino2[strlen(camino2) - 1] == '/') ){
+        fprintf(stderr, "Error: ambos caminos deben ser ficheros");
+        return -1;
+    }
+    
+    
+
+    bread(posSB, &SB);
+
+     p_inodo_dir=SB.posInodoRaiz;
+     p_inodo_dir2=SB.posInodoRaiz;
+     p_inodo1=SB.posInodoRaiz;
+     p_inodo2=SB.posInodoRaiz;
+
+
+
+
+    //Leemos inodo
+    error = buscar_entrada(camino1, &p_inodo_dir, &p_inodo1, &p_entrada, 0, 6); 
+
+        if (error < 0){
+            mostrar_error_buscar_entrada(error);
+            return -1;
+        }
+  
+    //en el caso que camino2 no exista, se crea mediante buscar_entrada con permisos 6
+    //la llamamos en formato escritura para que devuelva error en caso de que ya exista
+    error = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6); 
+        if (error < 0){
+            mostrar_error_buscar_entrada(error);
+            return -1;
+        }
+
+    //leemos la entrada de camino 2
+    error = mi_read_f(p_inodo_dir2, &entrada, p_entrada2* sizeof(struct entrada), sizeof(struct entrada));
+    if(error < 0){
+        fprintf(stderr, "Error de lectura de la entrada camino2, nivel10 mi_link\n");
+        return -1;
+    }
+    
+    liberar_inodo(entrada.ninodo);
+
+    //creamos el enlace asociado a la entrada de p_inodo1
+     entrada.ninodo = p_inodo1; 
+
+    error = mi_write_f(p_inodo_dir2, &entrada, p_entrada2* sizeof(struct entrada), sizeof(struct entrada));
+    if(error < 0){
+        fprintf(stderr, "Error de escritura de la entrada en p_inodo2" );
+
+    }
+
+ //leemos el inodo2 para comprobar que se trate de un fichero
+    error= leer_inodo(p_inodo1, &inodo1);
+        if(error < 0){
+            fprintf(stderr, "Eror al leer inodo nivel10, mi_link\n");
+            return -1;
+        }  
+
+
+    //Incrementamos la cantidad de enlaces de p_inodo
+    inodo1.nlinks++;
+    inodo1.ctime = time(NULL);
+    escribir_inodo( inodo1, p_inodo1);    
+    return 0;
+}
+
+//Funcion que borra la entrada de directorio especificada por el parametro camino
+int mi_unlink(const char *camino)
+{
+    struct superbloque SB;
+    //Struct Entrada
+    struct entrada input;
+
+    //Punteros a los inodos
+    unsigned int puntero_directorio = 0;
+    unsigned int puntero_inodo;
+    unsigned int puntero_entrada;
+    //Inodo
+    struct inodo inodo;
+
+    bread(posSB, &SB);
+    puntero_directorio = puntero_inodo = SB.posInodoRaiz;
+
+    //Check si existe la entrada
+    int resultado = buscar_entrada(camino, &puntero_directorio, &puntero_inodo, &puntero_entrada, 0, 6);
+    if (resultado < 0)
+    {
+        mostrar_error_buscar_entrada(resultado);
+        return -1;
+    }
+
+    // Caso directorio no vacio
+    if (leer_inodo(puntero_inodo, &inodo) == -1)
+    {
+        return -1;
+    }
+    if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0)
+    {
+        return -1;
+    }
+
+    // Leemos inodo que contiene la entrada
+    if (leer_inodo(puntero_directorio, &inodo) == -1)
+    {
+        return -1;
+    }
+
+    int numEntradas = inodo.tamEnBytesLog / sizeof(struct entrada);
+    if (puntero_entrada != numEntradas - 1)
+    {
+        // Read ultima entrada
+        mi_read_f(puntero_directorio, &input, (numEntradas - 1) * sizeof(struct entrada), sizeof(struct entrada));
+
+        // Write en la posición de la entrada a eliminar
+        mi_write_f(puntero_directorio, &input, puntero_entrada * sizeof(struct entrada), sizeof(struct entrada));
+    }
+
+    mi_truncar_f(puntero_directorio, (numEntradas - 1) * sizeof(struct entrada));
+
+    // Leemos el inodo asociado a la entrada borrada
+    if (leer_inodo(puntero_inodo, &inodo) == -1)
+    {
+        return -1;
+    }
+
+    // Actualizamos enlaces del inodo...
+    inodo.nlinks--;
+    if (inodo.nlinks == 0)
+    {
+        liberar_inodo(puntero_inodo);
+    }
+    else
+    {
+        inodo.ctime = time(NULL);
+        escribir_inodo( inodo, puntero_inodo);
+    }
+    
+    return 0;
 }
