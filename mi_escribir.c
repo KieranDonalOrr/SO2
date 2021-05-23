@@ -43,7 +43,7 @@ int main(int argc, char **argv){
     //antes de desmontar, mostrar la cantidad de bytes escritos
     printf("Cantidad de bytes escritos con mi_escribir: %d\n", nBytesEsc);
 
-    bumount(dir);
+    bumount();
 
     return 0;
 

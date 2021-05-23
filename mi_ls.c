@@ -11,12 +11,12 @@ int main (int argc, char **argv){
     char *buffer = malloc(TAMBUFFER);
     memset(buffer, 0, sizeof(char) * TAMBUFFER);
     if((mi_dir(argv[2], buffer)) == -1){
-        bumount(argv[1]);
+        bumount();
         return -1;
     }
     fprintf(stderr, "Nombre\n");
     fprintf(stderr, "----------------\n%s", buffer);
-    bumount(argv[1]);
+    bumount();
     return 0;
 
 }

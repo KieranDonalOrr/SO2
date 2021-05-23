@@ -9,7 +9,7 @@ int main(int argc, char **argv){
     {
     bmount(argv[1]);
     mi_link(argv[2], argv[3]);
-    bumount(argv[1]);
+    bumount();
     }else
     {
         fprintf(stderr, "No se admiten directorios\n");

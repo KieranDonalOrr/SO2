@@ -26,7 +26,7 @@ int main( int argc, char** argv){
         cantidadLeido= cantidadLeido+mi_read_f(nInodo, bufferTexto, offset, nBytes);
         aux=mi_read_f(nInodo, bufferTexto, offset, nBytes);
         if(aux==-1){
-          bumount(direccion);
+          bumount();
           return -1; 
         }
         if(aux<nBytes){

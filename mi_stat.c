@@ -32,6 +32,7 @@ int main(int argc, char **argv)
         printf("nlinks: %d\n", p_stat.nlinks);
         printf("tamEnBytesLog: %d\n", p_stat.tamEnBytesLog);
         printf("numBloquesOcupados: %d\n", p_stat.numBloquesOcupados);
+        bumount();
         return 0;
         
     }

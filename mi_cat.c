@@ -36,7 +36,7 @@ int main(int argc, char **argv){
     }
     printf("cantidad de bytes leidos es: %d",cantidadLeido);
 
-    bumount(direccion);
+    bumount();
 
     return 0;  
   }

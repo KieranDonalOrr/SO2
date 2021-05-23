@@ -43,6 +43,7 @@ int main(int argc, char **argv){
         nlinks: %i\n\
         tamEnBytesLog=%i\n\
         numBloquesOcupados=%i\n", nInodo, STAT.tipo, STAT.permisos, aFecha, cFecha, mFecha,STAT.nlinks, STAT.tamEnBytesLog, STAT.numBloquesOcupados);
+        bumount();
     return 1;
 
 }
