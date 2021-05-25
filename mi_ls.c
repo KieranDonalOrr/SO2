@@ -8,6 +8,7 @@ int main (int argc, char **argv){
         fprintf(stderr, "La sintaxis es incorrecta\n");
         return 0;
     }
+    bmount(argv[2]);
     char *buffer = malloc(TAMBUFFER);
     memset(buffer, 0, sizeof(char) * TAMBUFFER);
     if((mi_dir(argv[2], buffer)) == -1){
