@@ -585,7 +585,9 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
                 else
                 {                         //el bloque cuelga de otro bloque de punteros
                     buffer[indice] = ptr; //(imprimirlo para test)
+                     #if NIVEL5
                     printf("[traducir_bloque_inodo()→ inodo.punteros_nivel%i[%i] = %i (reservado BF %i para punteros_nivel%i)]\n", nivel_punteros + 1, indice, ptr, ptr, nivel_punteros);
+                    # endif
                     if (bwrite(ptr_ant, buffer) == -1)
                     {
                         fprintf(stderr, "Error de escritura");
@@ -621,14 +623,18 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, char reser
             inodo.ctime = time(NULL);
             if (nRangoBL == 0)
             {
+                 #if NIVEL5
                 printf("[traducir_bloque_inodo()→ inodo.punterosDirectos[%i] = %i (reservado BF %i para BL %i)]\n", nblogico, ptr, ptr, nblogico);
+                #endif
                 inodo.punterosDirectos[nblogico] = ptr; //imprimirlo para test
             }
             else
             {
 
                 buffer[indice] = ptr; //imprimirlo para test
+                 #if NIVEL5
                 printf("[traducir_bloque_inodo()→ inodo.punteros_nivel1[%i] = %i (reservado BF %i para BL %i)]\n", indice, ptr, ptr, nblogico);
+                 #endif
                 if (bwrite(ptr_ant, buffer) == -1)
                 {
                     fprintf(stderr, "Error de escritura \n");
