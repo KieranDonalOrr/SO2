@@ -223,9 +223,11 @@ int mi_creat(const char *camino, unsigned char permisos)
 
 int mi_dir(const char *camino, char *buffer)
 {
+    struct superbloque SB;
     unsigned int p_inodo_dir, p_inodo, p_entrada;
     int error;
     p_entrada = 0;
+     bread(posSB, &SB);
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
 
     if (error < 0)
@@ -329,6 +331,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     unsigned int p_inodo, p_inodo_dir, p_entrada;
     int bytesEsc;
     bread(posSB, &SB);
+    p_inodo_dir = p_inodo = SB.posInodoRaiz;
     int error = 0;
 
     //comprobamos si la escritura es sobre el mismo inodo
@@ -358,12 +361,12 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     if (bytesEsc == -1)
     {
 
-        fprintf(stderr, "Error de escritura, nivel 9 directorio.c");
+        fprintf(stderr, "Error de escritura, nivel 9 directorio.c\n");
         return -1;
     }
 
     //devuelve los bytes escritos
-    return bytesEsc;
+    return bytesEsc-offset;
 }
 
 //variable global de mi_read
@@ -377,6 +380,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     unsigned int p_inodo_dir, p_entrada;
     int bytesLeidos;
     bread(posSB, &SB);
+    p_inodo_dir = p_inodo = SB.posInodoRaiz;
     int error = 0;
 
     //misma metodología que en mi_write, pero inversa
@@ -404,7 +408,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
     bytesLeidos = mi_read_f(p_inodo, buf, offset, nbytes);
     if (bytesLeidos == -1)
     {
-        fprintf(stderr, "Fallo al leer directorio.c nivel9, mi_read");
+        fprintf(stderr, "Fallo al leer directorio.c nivel9, mi_read\n");
         return -1;
     }
 

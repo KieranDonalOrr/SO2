@@ -5,7 +5,6 @@ int main(int argc, char **argv)
     if (argv[1] == NULL || argv[2] == NULL || argv[3] == NULL)
     {
         fprintf(stderr, "Sintaxis incorrecta\n");
-        bumount();
         return 0;
     }
     else
@@ -14,15 +13,13 @@ int main(int argc, char **argv)
         int permisos = atoi(argv[2]);
         if (permisos < 0)
         {
-            fprintf(stderr, "Los permisos son menores a 0\n");
-            bumount();
+            fprintf(stderr, "Los permisos son menores a 0\n");   
             return 0;
         }
         else if (permisos > 7)
         {
 
             fprintf(stderr, "Los permisos son mayores a 7\n");
-            bumount();
             return 0;
         }
         else

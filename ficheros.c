@@ -223,7 +223,7 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat)
     p_stat->tamEnBytesLog = nodo.tamEnBytesLog;
     //NumBloqueOcupados
     p_stat->numBloquesOcupados = nodo.numBloquesOcupados;
-    return 1;
+    return 0;
 }
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
 {
@@ -237,7 +237,8 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
     }
     inodo.permisos = permisos;
     inodo.ctime = time(NULL);
-    return 1;
+    escribir_inodo( inodo, ninodo);
+    return 0;
 }
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes)
 {
