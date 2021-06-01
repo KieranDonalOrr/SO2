@@ -9,7 +9,7 @@ int main(int argc, char **argv){
     int nBytesEsc;
     int nTextoEscrito = 0;
     dir=argv[1];   
-    bmount(dir); 
+    
     
     //control de sintaxis
     if (argc != 5)
@@ -31,6 +31,7 @@ int main(int argc, char **argv){
     //argv[3] corresponde con la cantidad de texto escrito
     nTextoEscrito = strlen(argv[3]);
     //argv[4] corresponde con la entrada del offset
+    bmount(dir); 
     nBytesEsc = mi_write(argv[2], argv[3], atoi(argv[4]), nTextoEscrito);
 
     //testea que haya escrito bien

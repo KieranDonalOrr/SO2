@@ -1,5 +1,5 @@
 #include "directorios.h"
-#define DEBUG 1
+#define DEBUG 0
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
 {
 
@@ -60,9 +60,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     {
         return ERROR_CAMINO_INCORRECTO;
     }
-
+    #if DEBUG
     fprintf(stderr, "[buscar_entrada()-> inicial: %s, final: %s, reserva: %d] \n", inicial, final, reservar);
-
+    #endif
     //buscamos la entrada cuyo nombre se encuentra en inicial
     
     if (leer_inodo(*p_inodo_dir, &inodo_dir)==-1)
@@ -117,7 +117,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                     if (strcmp(final, "/") == 0)
                     {
                         entrada.ninodo = reservar_inodo('d', 6);
+                            #if DEBUG
                         fprintf(stderr, "[buscar_entrada()->reservado inodo: %d tipo 'd' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
+                            #endif
                     }
                     else
                     { //cuelgan más diretorios o ficheros
@@ -127,18 +129,24 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                 else
                 { //es un fichero
                     entrada.ninodo = reservar_inodo('f', 6);
+                        #if DEBUG
                     printf("[buscar_entrada()->reservado inodo: %d tipo 'f' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
+                    #endif
                 }
 
                 error = mi_write_f(*p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog, sizeof(struct entrada));
+                    #if DEBUG
                 fprintf(stderr, "[buscar_entrada()-> creada entrada: %s %d] \n", inicial, num_entrada_inodo);
+                    #endif
                 if (error == -1)
                 {
 
                     if (entrada.ninodo != -1)
                     {
                         liberar_inodo(entrada.ninodo);
+                            #if DEBUG
                         fprintf(stderr, "[buscar_entrada()-> liberado inodo %i, reservado a %s\n", num_entrada_inodo, inicial);
+                        #endif
                     }
                     return -1; //-1
                 }
