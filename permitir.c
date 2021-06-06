@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "ficheros.h"
 
 int main(int argc, char **argv)

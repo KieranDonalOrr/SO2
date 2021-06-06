@@ -1,4 +1,4 @@
-
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "ficheros_basico.h"
 struct STAT {     
    unsigned char tipo;     // Tipo ('l':libre, 'd':directorio o 'f':fichero)

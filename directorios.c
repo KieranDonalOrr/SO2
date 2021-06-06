@@ -1,5 +1,7 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "directorios.h"
 #define DEBUG 0
+#define SEMAFOROS 1
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo)
 {
 
@@ -60,16 +62,16 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     {
         return ERROR_CAMINO_INCORRECTO;
     }
-    #if DEBUG
+#if DEBUG
     fprintf(stderr, "[buscar_entrada()-> inicial: %s, final: %s, reserva: %d] \n", inicial, final, reservar);
-    #endif
+#endif
     //buscamos la entrada cuyo nombre se encuentra en inicial
     leer_inodo(*p_inodo_dir, &inodo_dir);
     if ((inodo_dir.permisos & 4) != 4)
     {
         return ERROR_PERMISO_LECTURA;
     }
-    
+
     //o bien un array de las entradas que caben en un bloque, para optimizar la lectura en RAM
     num_entrada_inodo = 0;                                                  //nº de entrada inicial
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / sizeof(struct entrada); //cantidad de entradas que contiene el inodo
@@ -78,7 +80,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     if (cant_entradas_inodo > 0)
     {
         offset = mi_read_f(*p_inodo_dir, buf_entradas, offset, BLOCKSIZE);
-        while ((num_entrada_inodo < cant_entradas_inodo) &&  (strcmp(inicial, buf_entradas[num_entrada_inodo].nombre) != 0))
+        while ((num_entrada_inodo < cant_entradas_inodo) && (strcmp(inicial, buf_entradas[num_entrada_inodo].nombre) != 0))
         {
             num_entrada_inodo++;
 
@@ -116,10 +118,12 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                 {
                     if (strcmp(final, "/") == 0)
                     {
+                        
                         entrada.ninodo = reservar_inodo('d', 6);
-                        #if DEBUG
+                       
+#if DEBUG
                         fprintf(stderr, "[buscar_entrada()->reservado inodo: %d tipo 'd' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
-                         #endif
+#endif
                     }
                     else
                     { //cuelgan más diretorios o ficheros
@@ -128,25 +132,29 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                 }
                 else
                 { //es un fichero
+                   
                     entrada.ninodo = reservar_inodo('f', 6);
-                    #if DEBUG
+                  
+#if DEBUG
                     printf("[buscar_entrada()->reservado inodo: %d tipo 'f' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
-                    #endif
+#endif
                 }
 
                 error = mi_write_f(*p_inodo_dir, &entrada, inodo_dir.tamEnBytesLog, sizeof(struct entrada));
-                    #if DEBUG
+#if DEBUG
                 fprintf(stderr, "[buscar_entrada()-> creada entrada: %s %d] \n", inicial, num_entrada_inodo);
-                    #endif
+#endif
                 if (error == -1)
                 {
 
                     if (entrada.ninodo != -1)
                     {
+                        
                         liberar_inodo(entrada.ninodo);
-                            #if DEBUG
+                         
+#if DEBUG
                         fprintf(stderr, "[buscar_entrada()-> liberado inodo %i, reservado a %s\n", num_entrada_inodo, inicial);
-                        #endif
+#endif
                     }
                     return -1; //-1
                 }
@@ -212,6 +220,7 @@ void mostrar_error_buscar_entrada(int error)
 
 int mi_creat(const char *camino, unsigned char permisos)
 {
+    mi_waitSem();
     struct superbloque SB;
     unsigned int p_inodo_dir, p_inodo, p_entrada;
     int error;
@@ -223,9 +232,10 @@ int mi_creat(const char *camino, unsigned char permisos)
     if (error < 0)
     {
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return -1;
     }
-
+    mi_signalSem();
     return 0;
 }
 
@@ -368,7 +378,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
 
     bytesEsc = mi_write_f(p_inodo, buf, offset, nbytes);
     //devuelve los bytes escritos
-    return bytesEsc-offset;
+    return bytesEsc - offset;
 }
 
 //variable global de mi_read
@@ -428,11 +438,12 @@ int mi_link(const char *camino1, const char *camino2)
     struct inodo inodo1;
     int error = 0;
     struct entrada entrada;
-
+    mi_waitSem();
     //necesariamente será un fichero.
     if ((camino1[strlen(camino1) - 1] == '/') && (camino2[strlen(camino2) - 1] == '/'))
     {
         fprintf(stderr, "Error: ambos caminos deben ser ficheros\n");
+        mi_signalSem();
         return -1;
     }
 
@@ -449,6 +460,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (error < 0)
     {
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return -1;
     }
 
@@ -458,6 +470,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (error < 0)
     {
         mostrar_error_buscar_entrada(error);
+        mi_signalSem();
         return -1;
     }
 
@@ -466,6 +479,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (error < 0)
     {
         fprintf(stderr, "Error de lectura de la entrada camino2, nivel10 mi_link\n");
+        mi_signalSem();
         return -1;
     }
 
@@ -485,6 +499,7 @@ int mi_link(const char *camino1, const char *camino2)
     if (error < 0)
     {
         fprintf(stderr, "Eror al leer inodo nivel10, mi_link\n");
+        mi_signalSem();
         return -1;
     }
 
@@ -492,6 +507,7 @@ int mi_link(const char *camino1, const char *camino2)
     inodo1.nlinks++;
     inodo1.ctime = time(NULL);
     escribir_inodo(inodo1, p_inodo1);
+    mi_signalSem();
     return 0;
 }
 
@@ -508,7 +524,7 @@ int mi_unlink(const char *camino)
     unsigned int puntero_entrada;
     //Inodo
     struct inodo inodo;
-
+    mi_waitSem();
     bread(posSB, &SB);
     puntero_directorio = puntero_inodo = SB.posInodoRaiz;
 
@@ -517,22 +533,26 @@ int mi_unlink(const char *camino)
     if (resultado < 0)
     {
         mostrar_error_buscar_entrada(resultado);
+        mi_signalSem();
         return -1;
     }
 
     // Caso directorio no vacio
     if (leer_inodo(puntero_inodo, &inodo) == -1)
     {
+        mi_signalSem();
         return -1;
     }
     if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0)
     {
+        mi_signalSem();
         return -1;
     }
 
     // Leemos inodo que contiene la entrada
     if (leer_inodo(puntero_directorio, &inodo) == -1)
     {
+        mi_signalSem();
         return -1;
     }
 
@@ -551,6 +571,7 @@ int mi_unlink(const char *camino)
     // Leemos el inodo asociado a la entrada borrada
     if (leer_inodo(puntero_inodo, &inodo) == 1)
     {
+        mi_signalSem();
         return -1;
     }
 
@@ -565,6 +586,6 @@ int mi_unlink(const char *camino)
         inodo.ctime = time(NULL);
         escribir_inodo(inodo, puntero_inodo);
     }
-
+    mi_signalSem();
     return 0;
 }

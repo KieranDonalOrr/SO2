@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "directorios.h"
 #define TAMFILA 100
 #define TAMBUFFER (TAMFILA*1000) 

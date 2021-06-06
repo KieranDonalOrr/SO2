@@ -1,4 +1,4 @@
-
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "ficheros.h"
 // Escribe el contenido de un buffer de memoria (buf_original), de tamao nbytes en un fichero/directorio.
 // Le indicamos la posición de escritura inicial en bytes lógicos (offset) con respecto al inodo y
@@ -15,7 +15,9 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     leer_inodo(ninodo, &inodo);
     if ((inodo.permisos & 2) == 2)
     {
+        mi_waitSem();
         int BFisico = traducir_bloque_inodo(ninodo, primerBLogico, 1);
+        mi_signalSem();
         if (desp1 != 0)
         {
             bread(BFisico, buf_bloque);
@@ -34,17 +36,23 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
             bwrite(BFisico, buf_bloque);
             for (int i = primerBLogico + 1; i != ultimoBLogico; i++)
             {
+                mi_waitSem();
                 BFisico = traducir_bloque_inodo(ninodo, i, 1);
+                mi_signalSem();
                 total += bwrite(BFisico, (buf_original + (BLOCKSIZE - desp1) + (i - primerBLogico - 1) * BLOCKSIZE));
+                
             }
             desp2 = desp2 % BLOCKSIZE;
+            mi_waitSem();
             BFisico = traducir_bloque_inodo(ninodo, ultimoBLogico, 1);
+            mi_signalSem();
             bread(BFisico, buf_bloque);
             memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
             total += desp2 + 1;
             bwrite(BFisico, buf_bloque);
         }
         total += offset;
+        mi_waitSem();
         leer_inodo(ninodo, &inodo);
         if (inodo.tamEnBytesLog < total)
         {
@@ -53,6 +61,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         }
         inodo.mtime = time(NULL);
         escribir_inodo(inodo, ninodo);
+        mi_signalSem();
         return total;
     }
     else
@@ -181,14 +190,17 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
         }
         nbytesLeidosReal = nbytesLeidosReal + (desp2 + 1);
 
+        mi_waitSem();
         //Actualizar inodos y atime
         if (leer_inodo(ninodo, &inodo) == -1)
         {
 
             fprintf(stderr, "Error de lectura del inodo\n");
+            mi_signalSem();
             return -1;
         }
         inodo.atime = time(NULL);
+        mi_signalSem();
     }
 
     //devolvemos cantidad de bytes leídos
@@ -230,14 +242,17 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
 
     struct inodo inodo;
     //lectura de inodo
+    mi_waitSem();
     if (leer_inodo(ninodo, &inodo) == -1)
     {
         fprintf(stderr, "Error lectura inodo\n");
+        mi_signalSem();
         return -1;
     }
     inodo.permisos = permisos;
     inodo.ctime = time(NULL);
     escribir_inodo(inodo, ninodo);
+    mi_signalSem();
     return 0;
 }
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes)
@@ -245,8 +260,9 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes)
     int primerBloqueLogico = 0;
     struct inodo inodoAux;
     int bloquesLiberados;
-
+   
     leer_inodo(ninodo, &inodoAux);
+    
     if ((inodoAux.permisos & 2) == 2)
     {
         if (nbytes >= inodoAux.tamEnBytesLog)
@@ -267,7 +283,9 @@ int mi_truncar_f(unsigned int ninodo, unsigned int nbytes)
         inodoAux.mtime = time(NULL);
         inodoAux.ctime = time(NULL);
         escribir_inodo(inodoAux, ninodo);
+        
         return bloquesLiberados;
     }
+    
     return -1;
 }

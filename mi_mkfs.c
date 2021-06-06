@@ -1,4 +1,4 @@
-
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "ficheros_basico.h"
 
 int main (int argc, char **argv){

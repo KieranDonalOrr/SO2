@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "ficheros.h"
 
 //escribirá un teto en uno o varios inodos haciendo uso de reservar_inodo('f',6) para obtener un nInodo que se mostrará por pantalla

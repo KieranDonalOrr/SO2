@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 /* semaforo_mutex_posix.c */
 #include "semaforo_mutex_posix.h"
  

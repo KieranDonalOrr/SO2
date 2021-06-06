@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "bloques.h"
 #include "ficheros_basico.h"
 

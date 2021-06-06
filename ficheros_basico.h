@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 //esto es un copia y pega con el modelo de adelaida, he añadido includes del anterior nivel y el time.h
 //hay muchísimo texto y creo que aquí en resumen hay que definir los punteros indirectos y toda esa wea.
 

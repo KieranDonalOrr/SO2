@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "verificacion.h"
 
 int main(int argc, char **argv){
@@ -47,6 +48,7 @@ int main(int argc, char **argv){
     //con una sola llamada a mi_read() utilizando un buffer del tamaño NUMPROCESOS * sizeof (struct entrada) o llamando a vuestra función mi_dir() en su versión simple .
     struct entrada ent;
     char bufferEntrada[NUMPROCESOS * sizeof(struct entrada)]; //honestamente hago la mejora porque adelaida me dice como se hace
+    char prueba[];
     //inicializo buffer a 0
     memset(bufferEntrada, 0,NUMPROCESOS * sizeof(struct entrada));
     //leer entrada del buffer
@@ -65,7 +67,15 @@ int main(int argc, char **argv){
     //y luego pasarlos a entero con la función atoi(). El registro info es de tipo struct INFORMACION.
     char aux;
     aux = strchr(ent.nombre,'_');
-    info.pid = atoi(aux);
+    info.pid = atoi(aux+ 1);
+
+    //Recorrer secuencialmente el fichero prueba.dat utilizando buffer de N registros de escrituras: 
+     int cant_registros_buffer_escrituras = 256; 
+ struct REGISTRO buffer_escrituras[cant_registros_buffer_escrituras];
+ memset(buffer_escrituras, 0, sizeof(buffer_escrituras));
+ while (mi_read(prueba, buffer_escrituras, offset, sizeof(buffer_escrituras)) > 0) {
+
+    }
 
 
 

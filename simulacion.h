@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include <sys/wait.h> 
 #include <signal.h> 
 #include "directorios.h"
@@ -13,3 +14,5 @@
    int nEscritura; //Entero con el número de escritura (de 1 a 50)
    int nRegistro; //Entero con el número del registro dentro del fichero
 };
+
+void reaper();

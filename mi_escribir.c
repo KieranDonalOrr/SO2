@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "directorios.h"
 
 //Permite escribir texto en una posición de un fichero.de

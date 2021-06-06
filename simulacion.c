@@ -1,3 +1,4 @@
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
 #include "simulacion.h"
 
 //numero de procesos finalizados
@@ -34,7 +35,7 @@ int main(int argc, char **argv){
     strcpy(dp, "/simul_");
     strcat(dp, fecha);
     strcat(dp, "/");
-    error = mi_creat(dp,7);
+    error = mi_creat(dp,6);
     //comprobación ejecución mi_creat
     if(error < 0 ){    
         fprintf(stderr, "Error al crear directorio (dp), simulacion.c/nivel12 \n");
@@ -70,9 +71,9 @@ int main(int argc, char **argv){
 
             //crear fichero de prueba.dat
             //es decir /simul_aaaammddhhmmss/proceso_pid/prueba.dat
-            stract(d,"prueba.dat");
+            strcat(d,"prueba.dat");
 
-            error = mi_creat(d,7);
+            error = mi_creat(d,6);
             //comprobación ejecución mi_creat
             if(error < 0 ){    
                 fprintf(stderr, "Error al crear fichero prueba.dat desde el directorio(d), simulacion.c/nivel12 \n");
