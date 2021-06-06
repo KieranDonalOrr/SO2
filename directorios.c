@@ -64,8 +64,8 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     fprintf(stderr, "[buscar_entrada()-> inicial: %s, final: %s, reserva: %d] \n", inicial, final, reservar);
     #endif
     //buscamos la entrada cuyo nombre se encuentra en inicial
-    
-    if (leer_inodo(*p_inodo_dir, &inodo_dir)==-1)
+    leer_inodo(*p_inodo_dir, &inodo_dir);
+    if ((inodo_dir.permisos & 4) != 4)
     {
         return ERROR_PERMISO_LECTURA;
     }
@@ -235,7 +235,7 @@ int mi_dir(const char *camino, char *buffer)
     unsigned int p_inodo_dir, p_inodo, p_entrada;
     int error;
     p_entrada = 0;
-     bread(posSB, &SB);
+    bread(posSB, &SB);
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
 
     if (error < 0)
@@ -408,6 +408,7 @@ int mi_read(const char *camino, void *buf, unsigned int offset, unsigned int nby
 
     //si la entrada existe llamamos a mi_read_f
     bytesLeidos = mi_read_f(p_inodo, buf, offset, nbytes);
+    write(1, buf, bytesLeidos);
     if (bytesLeidos == -1)
     {
         fprintf(stderr, "Fallo al leer directorio.c nivel9, mi_read\n");

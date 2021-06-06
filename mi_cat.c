@@ -19,22 +19,22 @@ int main(int argc, char **argv){
 
     const char *direccion;
     direccion =argv[1];
-    int nBytes =1500;
+    int tamBuffer = BLOCKSIZE * 4;
+    char *lectura = malloc(tamBuffer);
     int offset=0;
-    char *tambuffer[nBytes];
+    
     int cantidadLeido=0;
 
     bmount(direccion);
-    memset(tambuffer, 0, BLOCKSIZE * 4);
+   
 
     //los bytes leídos han de coincidir con el tamaño en bytes lógicos
-    cantidadLeido = mi_read(argv[2],tambuffer,offset, BLOCKSIZE * 4);
+    cantidadLeido = mi_read(argv[2],lectura,offset,  BLOCKSIZE * 4);
     if(cantidadLeido == -1){
-
       fprintf(stderr, "Error de lectura nivel9, mi_cat.c\n");
       return -1;
     }
-    printf("cantidad de bytes leidos es: %d",cantidadLeido);
+    fprintf(stderr,"cantidad de bytes leidos es: %d\n",cantidadLeido);
 
     bumount();
 

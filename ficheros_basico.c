@@ -376,7 +376,7 @@ int escribir_inodo(struct inodo inodo, unsigned int numInodo)
     ai[(numInodo % (BLOCKSIZE / (BLOCKSIZE / 8)))] = inodo;
 
     //escribimos el bloque modificado en el dispositivo virtual
-    if (bwrite(nBloque, ai) == -1)
+    if (bwrite(nBloque, &ai) == -1)
     {
         printf("Error en escribir el inodo\n");
         return -1;
@@ -398,7 +398,7 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo)
     }
     //nBloque del array de inodos que tiene el inodo solicitado
     nBloque = SB.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / (BLOCKSIZE / 8)));
-    if (bread(nBloque, ai) == 1)
+    if (bread(nBloque, &ai) == -1)
     {
         printf("Error al leer el inodo\n");
         return -1;
@@ -751,10 +751,10 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
 
     memset(bufAux_punteros, 0, BLOCKSIZE);
     ptr = 0;
-
+    #if NIVEL6
     fprintf(stderr, "[liberar_bloques_inodo() → primer BL: %i, último BL: %i]\n",
             primerBL, ultimoBL);
-
+    #endif
     for (nBL = primerBL; nBL <= ultimoBL; nBL++)
     {
         nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr); // &inodo por utilizar inodo_t
@@ -787,10 +787,10 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
         {
             liberar_bloque(ptr);
             liberados++;
-
+            #if NIVEL6
             fprintf(stderr, "[liberar_bloques_inodo()→ liberado BF %i de datos para BL: %i]\n",
                     ptr, nBL);
-
+            #endif
             if (nRangoBL == 0)
             {
                 inodo->punterosDirectos[nBL] = 0;
@@ -833,9 +833,9 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo)
             }
         }
     }
-
+    #if NIVEL6
     fprintf(stderr, "[liberar_bloques_inodo() → total bloques liberados: %i]\n",
             liberados);
-
+    #endif
     return liberados;
 }

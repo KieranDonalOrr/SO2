@@ -53,7 +53,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         }
         inodo.mtime = time(NULL);
         escribir_inodo(inodo, ninodo);
-        return total-offset;
+        return total;
     }
     else
     {
@@ -237,7 +237,7 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos)
     }
     inodo.permisos = permisos;
     inodo.ctime = time(NULL);
-    escribir_inodo( inodo, ninodo);
+    escribir_inodo(inodo, ninodo);
     return 0;
 }
 int mi_truncar_f(unsigned int ninodo, unsigned int nbytes)
