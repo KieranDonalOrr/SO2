@@ -53,7 +53,7 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         }
         inodo.mtime = time(NULL);
         escribir_inodo(inodo, ninodo);
-        return total;
+        return total-offset;
     }
     else
     {

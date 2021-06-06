@@ -117,9 +117,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                     if (strcmp(final, "/") == 0)
                     {
                         entrada.ninodo = reservar_inodo('d', 6);
-                            #if DEBUG
+                        #if DEBUG
                         fprintf(stderr, "[buscar_entrada()->reservado inodo: %d tipo 'd' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
-                            #endif
+                         #endif
                     }
                     else
                     { //cuelgan más diretorios o ficheros
@@ -129,7 +129,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                 else
                 { //es un fichero
                     entrada.ninodo = reservar_inodo('f', 6);
-                        #if DEBUG
+                    #if DEBUG
                     printf("[buscar_entrada()->reservado inodo: %d tipo 'f' con permisos %c para: %s]\n", entrada.ninodo, permisos, entrada.nombre);
                     #endif
                 }
@@ -326,7 +326,7 @@ int mi_stat(const char *camino, struct STAT *p_stat)
         return -1;
     }
     mi_stat_f(p_inodo, p_stat);
-    return 0;
+    return p_inodo;
 }
 
 //definida como variable global
@@ -340,6 +340,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     int bytesEsc;
     bread(posSB, &SB);
     p_inodo_dir = p_inodo = SB.posInodoRaiz;
+    p_entrada = 0;
     int error = 0;
 
     //comprobamos si la escritura es sobre el mismo inodo
@@ -366,13 +367,6 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     }
 
     bytesEsc = mi_write_f(p_inodo, buf, offset, nbytes);
-    if (bytesEsc == -1)
-    {
-
-        fprintf(stderr, "Error de escritura, nivel 9 directorio.c\n");
-        return -1;
-    }
-
     //devuelve los bytes escritos
     return bytesEsc-offset;
 }
@@ -437,7 +431,7 @@ int mi_link(const char *camino1, const char *camino2)
     //necesariamente será un fichero.
     if ((camino1[strlen(camino1) - 1] == '/') && (camino2[strlen(camino2) - 1] == '/'))
     {
-        fprintf(stderr, "Error: ambos caminos deben ser ficheros");
+        fprintf(stderr, "Error: ambos caminos deben ser ficheros\n");
         return -1;
     }
 
@@ -482,7 +476,7 @@ int mi_link(const char *camino1, const char *camino2)
     error = mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada));
     if (error < 0)
     {
-        fprintf(stderr, "Error de escritura de la entrada en p_inodo2");
+        fprintf(stderr, "Error de escritura de la entrada en p_inodo2\n");
     }
 
     //leemos el inodo2 para comprobar que se trate de un fichero
@@ -554,7 +548,7 @@ int mi_unlink(const char *camino)
     mi_truncar_f(puntero_directorio, (numEntradas - 1) * sizeof(struct entrada));
 
     // Leemos el inodo asociado a la entrada borrada
-    if (leer_inodo(puntero_inodo, &inodo) == -1)
+    if (leer_inodo(puntero_inodo, &inodo) == 1)
     {
         return -1;
     }

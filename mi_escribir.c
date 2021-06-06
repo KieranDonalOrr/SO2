@@ -36,7 +36,7 @@ int main(int argc, char **argv){
 
     //testea que haya escrito bien
     if(nBytesEsc <0){
-        fprintf(stderr, "Error de escritura nivel9. mi_escribir.c");
+        fprintf(stderr, "Error de escritura nivel9. mi_escribir.c\n");
         
         return -1;
     }

@@ -25,10 +25,10 @@ int main(int argc, char **argv){
     int cantidadLeido=0;
 
     bmount(direccion);
-    memset(tambuffer, 0, nBytes);
+    memset(tambuffer, 0, BLOCKSIZE * 4);
 
     //los bytes leídos han de coincidir con el tamaño en bytes lógicos
-    cantidadLeido = mi_read(argv[2],tambuffer,offset, nBytes);
+    cantidadLeido = mi_read(argv[2],tambuffer,offset, BLOCKSIZE * 4);
     if(cantidadLeido == -1){
 
       fprintf(stderr, "Error de lectura nivel9, mi_cat.c\n");

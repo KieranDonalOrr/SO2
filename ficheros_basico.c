@@ -1,8 +1,8 @@
 #include "ficheros_basico.h"
 #include "bloques.h"
 #include <time.h>
-#define Nivel5 1
-#define NIVEL6 1
+#define NIVEL5 0
+#define NIVEL6 0
 struct superbloque SB;
 struct inodo inodos[BLOCKSIZE / INODOSIZE];
 //Devuelve el Tamaño en bloques del mapa de bits
@@ -398,7 +398,7 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo)
     }
     //nBloque del array de inodos que tiene el inodo solicitado
     nBloque = SB.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / (BLOCKSIZE / 8)));
-    if (bread(nBloque, &ai) == -1)
+    if (bread(nBloque, ai) == 1)
     {
         printf("Error al leer el inodo\n");
         return -1;

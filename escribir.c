@@ -16,7 +16,6 @@ int main(int argc, char **argv)
     //creamos y mostramos nInodo
     unsigned int nInodo;
     unsigned int diferentes_inodos = atoi(argv[3]);
-    dir = argv[1];
     dir=argv[1];   
     bmount(dir); 
     bread(posSB, &SB);
@@ -38,13 +37,14 @@ int main(int argc, char **argv)
     
     if (diferentes_inodos == 0)
     {
-        nInodo = reservar_inodo('f', 6);
+       
         strcpy(buffer, argv[2]);
         
-        
+        nInodo = reservar_inodo('f', 6);
         //bucle que itera 5 veces para recorrer todos los offset
         for (int i = 0; i < 5; i++)
         {
+           
             fprintf(stderr,"Nº inodo reservado: %d\n", nInodo);
             fprintf(stderr,"offset:  %d\n", offset[i]);
 
@@ -60,12 +60,13 @@ int main(int argc, char **argv)
     }
     else if (diferentes_inodos == 1)
     {
-        nInodo = reservar_inodo('f', 6);
+        
         strcpy(buffer, argv[2]);
         fprintf(stderr,"inodos=0\n");
         //bucle que itera 5 veces para recorrer todos los offset
         for (int i = 0; i < 4; i++)
         {
+            nInodo = reservar_inodo('f', 6);
             fprintf(stderr,"Nº inodo reservado: %d\n", nInodo);
             fprintf(stderr,"offset:  %d\n", offset[i]);
 
