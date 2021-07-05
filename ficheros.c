@@ -3,71 +3,110 @@
 // Escribe el contenido de un buffer de memoria (buf_original), de tamao nbytes en un fichero/directorio.
 // Le indicamos la posición de escritura inicial en bytes lógicos (offset) con respecto al inodo y
 // el número de bytes que hay que escribir
-int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes)
-{
+int mi_write_f(unsigned int ninodo, const void *buf_original,unsigned int offset ,unsigned int nbytes){
+    
     struct inodo inodo;
-    void *buf_bloque = malloc(BLOCKSIZE);
-    int total = 0;
-    int desp1 = offset % BLOCKSIZE;
-    int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
-    int primerBLogico = offset / BLOCKSIZE;
-    int ultimoBLogico = (offset + nbytes - 1) / BLOCKSIZE;
+    unsigned char buf_bloque[BLOCKSIZE];
+    int bytes_escritos = 0;
     leer_inodo(ninodo, &inodo);
-    if ((inodo.permisos & 2) == 2)
-    {
+
+    if((inodo.permisos & 2) == 2){
+        int primerBLogico = offset/BLOCKSIZE;
+        int ultimoBLogico = (offset + nbytes - 1) / BLOCKSIZE;
+        int desp1 = offset % BLOCKSIZE;
+        int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
         mi_waitSem();
-        int BFisico = traducir_bloque_inodo(ninodo, primerBLogico, 1);
-        mi_signalSem();
-        if (desp1 != 0)
-        {
-            bread(BFisico, buf_bloque);
-        }
-        if (primerBLogico == ultimoBLogico)
-        {
-            memcpy(buf_bloque + desp1, buf_original, desp2 + 1 - desp1);
-            total += desp2 + 1 - desp1;
-            bwrite(BFisico, buf_bloque);
-        }
-        else
-        {
-            desp2 = offset + nbytes - 1;
-            memcpy(buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
-            total += BLOCKSIZE - desp1;
-            bwrite(BFisico, buf_bloque);
-            for (int i = primerBLogico + 1; i != ultimoBLogico; i++)
-            {
-                mi_waitSem();
-                BFisico = traducir_bloque_inodo(ninodo, i, 1);
+        int nbfisico = traducir_bloque_inodo(ninodo,primerBLogico,1);
+        if(desp1 != 0){
+            if(bread(nbfisico, buf_bloque)==-1){
                 mi_signalSem();
-                total += bwrite(BFisico, (buf_original + (BLOCKSIZE - desp1) + (i - primerBLogico - 1) * BLOCKSIZE));
-                
+                fprintf(stderr,"Error lectura en mi_write\n");
+                return -1;
             }
+        }
+         if(nbfisico == -1){
+             fprintf(stderr,"Error en la lectura del nbfisico");
+             mi_signalSem();
+             return -1;
+            }
+          mi_signalSem();
+        if(bread(nbfisico, buf_bloque)==-1){
+                fprintf(stderr,"Error lectura en mi_write\n");
+                return -1;
+            }
+
+        if(primerBLogico == ultimoBLogico){
+    
+            memcpy(buf_bloque + desp1, buf_original,nbytes);
+            bytes_escritos += nbytes;
+            if(bwrite(nbfisico, buf_bloque)==-1){
+                fprintf(stderr,"Error escritura en mi_write\n");
+                return -1;
+            }
+        }
+        else{
+            desp2 = offset + nbytes - 1;
+            memcpy (buf_bloque + desp1, buf_original, BLOCKSIZE - desp1);
+            if(bwrite(nbfisico, buf_bloque)==-1){
+                fprintf(stderr,"Error escritura en mi_write\n");
+                return -1;
+            }
+            bytes_escritos += BLOCKSIZE - desp1;
+
+            for(int i = primerBLogico + 1; i != ultimoBLogico; i ++){
+                mi_waitSem();
+                nbfisico = traducir_bloque_inodo(ninodo, i, 1);
+         if(nbfisico == -1){
+             fprintf(stderr,"Error en la lectura del nbfisico");
+             mi_signalSem();
+             return -1;
+            }
+                bytes_escritos += bwrite(nbfisico, (buf_original + (BLOCKSIZE - desp1) + (i - primerBLogico - 1) * BLOCKSIZE));
+                mi_signalSem();
+            }
+            
             desp2 = desp2 % BLOCKSIZE;
             mi_waitSem();
-            BFisico = traducir_bloque_inodo(ninodo, ultimoBLogico, 1);
-            mi_signalSem();
-            bread(BFisico, buf_bloque);
-            memcpy(buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
-            total += desp2 + 1;
-            bwrite(BFisico, buf_bloque);
+            nbfisico = traducir_bloque_inodo(ninodo, ultimoBLogico, 1);
+         if(nbfisico == -1){
+             fprintf(stderr,"Error en la lectura del nbfisico");
+             mi_signalSem();
+             return -1;
+            }
+         mi_signalSem();
+            if(bread(nbfisico, buf_bloque)==-1){
+               
+                fprintf(stderr,"Error lectura en mi_write\n");
+                return -1;
+            }
+            
+            memcpy (buf_bloque, buf_original + (nbytes - desp2 - 1), desp2 + 1);
+            bytes_escritos += desp2 + 1;
+            if(bwrite(nbfisico, buf_bloque)==-1){
+                fprintf(stderr,"Error escritura en mi_write\n");
+                return -1;
+            }
         }
-        total += offset;
+        int bytes_escritos2 = bytes_escritos + offset;
+        //volvemos a leer el inodo, se han reservado bloques
         mi_waitSem();
-        leer_inodo(ninodo, &inodo);
-        if (inodo.tamEnBytesLog < total)
+        if (leer_inodo(ninodo, &inodo) == -1)
         {
-            inodo.tamEnBytesLog = total;
+            mi_signalSem();
+            fprintf(stderr, "Error lectura inodo\n");
+            return -1;
+        }
+        if(inodo.tamEnBytesLog < bytes_escritos2){
+            inodo.tamEnBytesLog = bytes_escritos2;
             inodo.ctime = time(NULL);
         }
-        inodo.mtime = time(NULL);
+        inodo.mtime = time (NULL);
         escribir_inodo(inodo, ninodo);
         mi_signalSem();
-        return total;
+        return bytes_escritos; 
     }
-    else
-    {
-        fprintf(stderr, "\n¡No hay permisos de escritura!\n");
-
+    else{
+        fprintf(stderr, "\nNo hay permisos de escritura\n");
         return -1;
     }
 }

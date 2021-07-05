@@ -5,7 +5,7 @@ int main(int argc, char **argv)
 {
     if (argv[1] == NULL || argv[2] == NULL)
     {
-        fprintf(stderr, "La sintaxis es incorrecta\n");
+        fprintf(stderr, "Error de Sintaxis\n");
         return 0;
     }
     else

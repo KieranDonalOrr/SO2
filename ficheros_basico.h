@@ -78,7 +78,7 @@ int initMB();
 int initAI();
 //funciones correspondientes al nivel3
 int escribir_bit(unsigned int nBloque, unsigned int bit);
-unsigned char leer_bit(unsigned int nBloque);
+char leer_bit(unsigned int nBloque);
 int reservar_bloque();
 int liberar_bloque(unsigned int nBloque);
 int escribir_inodo(struct inodo inodo, unsigned int numInodo);

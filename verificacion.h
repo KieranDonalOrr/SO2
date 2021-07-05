@@ -1,13 +1,10 @@
-//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
-//verificacion.h
 #include "simulacion.h"
- #define NENTRADAS 100
-struct INFORMACION {
-  int pid;
-  
-  unsigned int nEscrituras; //validadas 
-  struct REGISTRO PrimeraEscritura;
-  struct REGISTRO UltimaEscritura;
-  struct REGISTRO MenorPosicion;
-  struct REGISTRO MayorPosicion;
+
+struct INFORMACION{
+    int pid;
+    unsigned int nEscrituras; //validadas
+    struct REGISTRO PrimeraEscritura;
+    struct REGISTRO UltimaEscritura;
+    struct REGISTRO MenorPosicion;
+    struct REGISTRO MayorPosicion;
 };

@@ -1,5 +1,6 @@
 //Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín 
  /* semaforo_mutex_posix.h */
+ #include "directorios.h"
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
