@@ -1,2 +1,7 @@
 # SO2
-La practica no es ta terminada por culpa de falta de tiempo no hicimos las pruebas del nivel 5 y 6
+Practica final SO2
+//Autores: Pablo Núñez Pérez, Kieran Donal Orr y Ander Sarrión Martín
+Mejoras:
+Truncar
+mi_ls mejorado
+Buffer en verificacion
